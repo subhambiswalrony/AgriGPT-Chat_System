@@ -9,9 +9,10 @@ chat_collection = db.chat_history
 user_collection = db.users
 
 
-def save_chat(user_id, question, answer, response_type, language):
+def save_chat(user_id, question, answer, response_type, language, input_type="text"):
     chat_collection.insert_one({
         "user_id": user_id,
+        "input_type": input_type,
         "question": question,
         "answer": answer,
         "response_type": response_type,
