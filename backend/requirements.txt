@@ -1,0 +1,15 @@
+flask
+flask-cors
+python-dotenv
+google-generativeai
+pymongo
+speechrecognition
+pydub
+pyjwt
+bcrypt
+faster-whisper
+langdetect
+numpy
+scipy
+sounddevice
+torch
