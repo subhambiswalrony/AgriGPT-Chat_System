@@ -24,11 +24,17 @@ def token_required(f):
 
 @auth_bp.route("/signup", methods=["POST"])
 def signup():
-    data = request.get_json()
-    return jsonify(signup_user(data["email"], data["password"], data.get("name")))
+    try:
+        data = request.get_json()
+        return jsonify(signup_user(data["email"], data["password"], data.get("name")))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
-    return jsonify(login_user(data["email"], data["password"]))
+    try:
+        data = request.get_json()
+        return jsonify(login_user(data["email"], data["password"]))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 401
