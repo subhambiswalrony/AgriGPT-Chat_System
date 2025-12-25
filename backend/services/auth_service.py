@@ -31,7 +31,9 @@ def signup_user(email, password, name):
 
 def login_user(email, password):
     user = user_collection.find_one({"email": email})
-    if not user or not bcrypt.checkpw(password.encode(), user["password"]):
+    if not user:
+        raise Exception("User not registered")
+    if not bcrypt.checkpw(password.encode(), user["password"]):
         raise Exception("Invalid credentials")
 
     # Update last login timestamp
