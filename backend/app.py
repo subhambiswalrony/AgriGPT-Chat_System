@@ -122,6 +122,21 @@ def report_api():
         return jsonify({"error": "Internal server error"}), 500
 
 
+# -------------------- REPORT HISTORY --------------------
+@app.route("/api/reports", methods=["GET"])
+@token_required
+def report_history():
+    try:
+        user_id = request.current_user["user_id"]
+        from services.db_service import get_user_reports
+        reports = get_user_reports(user_id)
+        return jsonify(reports)
+
+    except Exception as e:
+        print(f"❌ Error in report_history: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
 # -------------------- RUN SERVER --------------------
 if __name__ == "__main__":
     app.run(debug=True)
