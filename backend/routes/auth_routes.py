@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.auth_service import signup_user, login_user, update_user_profile, change_user_password
+from services.auth_service import signup_user, login_user, update_user_profile, change_user_password, delete_user_account, send_otp_email, verify_otp_code
 import jwt
 from functools import wraps
 from utils.config import JWT_SECRET_KEY
@@ -55,7 +55,12 @@ def update_profile():
     try:
         data = request.get_json()
         user_id = request.current_user["user_id"]
-        result = update_user_profile(user_id, data.get("name"), data.get("email"))
+        result = update_user_profile(
+            user_id, 
+            data.get("name"), 
+            data.get("email"),
+            data.get("profilePicture")
+        )
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -68,6 +73,48 @@ def change_password():
         data = request.get_json()
         user_id = request.current_user["user_id"]
         result = change_user_password(user_id, data.get("currentPassword"), data.get("newPassword"))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@auth_bp.route("/delete-account", methods=["DELETE"])
+@token_required
+def delete_account():
+    try:
+        user_id = request.current_user["user_id"]
+        result = delete_user_account(user_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@auth_bp.route("/send-otp", methods=["POST"])
+def send_otp():
+    try:
+        data = request.get_json()
+        email = data.get("email")
+        
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+        
+        result = send_otp_email(email)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@auth_bp.route("/verify-otp", methods=["POST"])
+def verify_otp():
+    try:
+        data = request.get_json()
+        email = data.get("email")
+        otp = data.get("otp")
+        
+        if not email or not otp:
+            return jsonify({"error": "Email and OTP are required"}), 400
+        
+        result = verify_otp_code(email, otp)
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
