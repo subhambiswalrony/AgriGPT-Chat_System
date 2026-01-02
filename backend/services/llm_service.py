@@ -1,5 +1,9 @@
+import warnings
 import google.generativeai as genai
 from utils.config import GEMINI_API_KEY
+
+# Suppress deprecation warning for now (TODO: migrate to google.genai in future)
+warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
 
 genai.configure(api_key=GEMINI_API_KEY)
 
@@ -43,11 +47,37 @@ model = genai.GenerativeModel(
     system_instruction=SYSTEM_PROMPT
 )
 
-def get_ai_response(prompt: str) -> str:
+def get_ai_response(prompt: str, chat_history: list = None) -> str:
+    """
+    Get AI response with optional conversation history.
+    
+    Args:
+        prompt: The current user message
+        chat_history: List of previous messages in format [{"role": "user"/"assistant", "message": "..."}]
+    """
     try:
-        response = model.generate_content(prompt)
+        if chat_history and len(chat_history) > 0:
+            # Format history for Gemini API
+            # Gemini expects: [{"role": "user", "parts": ["text"]}, {"role": "model", "parts": ["text"]}, ...]
+            gemini_history = []
+            for msg in chat_history:
+                if msg["role"] == "user":
+                    gemini_history.append({"role": "user", "parts": [msg["message"]]})
+                elif msg["role"] == "assistant":
+                    gemini_history.append({"role": "model", "parts": [msg["message"]]})
+            
+            # Start chat with history
+            chat = model.start_chat(history=gemini_history)
+            
+            # Send current message with context
+            response = chat.send_message(prompt)
+        else:
+            # No history, single message
+            response = model.generate_content(prompt)
+        
         return response.text.strip()
-    except Exception:
+    except Exception as e:
+        print(f"Error in get_ai_response: {str(e)}")
         return "🌾 I am AgriGPT 🌾 and I only assist with agricultural and farming-related queries."
 
 """For testing purpose"""
