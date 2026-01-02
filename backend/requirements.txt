@@ -15,3 +15,4 @@ sounddevice
 torch
 weasyprint
 langdetect
+gunicorn
