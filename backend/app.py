@@ -16,12 +16,14 @@ from services.db_service import (
 
 # Auth
 from routes.auth_routes import auth_bp, token_required, verify_token
+from routes.otp_routes import otp_bp
 
 app = Flask(__name__)
 CORS(app)
 
 # Register authentication blueprint
 app.register_blueprint(auth_bp)
+app.register_blueprint(otp_bp)
 
 # -------------------- HEALTH CHECK --------------------
 @app.route("/")
