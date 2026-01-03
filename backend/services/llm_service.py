@@ -3,7 +3,11 @@ import google.generativeai as genai
 from utils.config import GEMINI_API_KEY
 
 # Suppress deprecation warning for now (TODO: migrate to google.genai in future)
-warnings.filterwarnings('ignore', category=FutureWarning, module='google.generativeai')
+warnings.filterwarnings(
+	'ignore', 
+	category=FutureWarning, 
+	module='google.generativeai'
+)
 
 genai.configure(api_key=GEMINI_API_KEY)
 
