@@ -34,16 +34,23 @@ A multilingual AI-powered chatbot designed to assist Indian farmers with agricul
 
 ### 4. **User Authentication & Authorization**
 - JWT-based authentication system
+- **Multiple authentication methods:**
+  - Traditional email/password authentication
+  - **Google Sign-In with Firebase** (OAuth 2.0)
+  - Hybrid support: Google users can add password for email login
 - Secure user signup and login
 - Password encryption with bcrypt
+- Firebase Admin SDK for token verification
 - Token-based API protection
 - Token verification with `@token_required` decorator
 - Profile management:
   - Update name and email
   - Change password with current password verification
+  - Upload/change/remove profile picture
 - Automatic timestamp tracking:
   - Account creation time (`created_at`)
   - Last login time (`last_login`)
+- **Auth provider tracking**: Monitors authentication methods per user (google, local)
 
 ### 5. **Trial System for Non-Authenticated Users**
 - Free trial access for text chat without authentication
@@ -78,9 +85,13 @@ A multilingual AI-powered chatbot designed to assist Indian farmers with agricul
 - MongoDB for data persistence
 - Database: `agrigpt`
 - Collections:
-  - `users` - User accounts with authentication details and timestamps
+  - `users` - User accounts with authentication details, Firebase UID, and auth providers
   - `chat_history` - Complete conversation logs with metadata
   - `farming_reports` - Generated farming reports with crop/region/language data
+- User schema includes:
+  - `firebase_uid` - Firebase user identifier (for Google Sign-In users)
+  - `auth_providers` - Array of authentication methods (["google"], ["local"], or ["google", "local"])
+  - `password` - Hashed password (optional, only for local/hybrid auth)
 - Timezone-aware timestamps using `datetime.now(timezone.utc)`
 - Comprehensive error handling and logging
 
@@ -98,15 +109,31 @@ A multilingual AI-powered chatbot designed to assist Indian farmers with agricul
   - Body: `{ "email": "user@example.com", "password": "password" }`
   - Returns: `{ "user_id", "email", "name", "token" }`
 
+- `POST /api/auth/google` - **Google Sign-In with Firebase**
+  - Headers: `Authorization: Bearer <firebase_id_token>`
+  - Body: None (user info extracted from Firebase token)
+  - Returns: `{ "user_id", "firebase_uid", "email", "name", "auth_providers", "token" }`
+  - Creates new user or syncs existing user with MongoDB
+
 ### User Profile (Token required)
 - `PUT /api/update-profile` - Update user profile
   - Headers: `Authorization: Bearer <token>`
-  - Body: `{ "name": "New Name", "email": "new@example.com" }`
-  - Returns: `{ "success": true, "message", "name", "email" }`
+  - Body: `{ "name": "New Name", "email": "new@example.com", "profilePicture": "base64_image" }`
+  - Returns: `{ "success": true, "message", "name", "email", "profilePicture" }`
   
 - `PUT /api/change-password` - Change password
   - Headers: `Authorization: Bearer <token>`
   - Body: `{ "currentPassword": "old", "newPassword": "new" }`
+  - Returns: `{ "success": true, "message" }`
+
+- `POST /api/create-password` - **Create password for Google Sign-In users**
+  - Headers: `Authorization: Bearer <token>`
+  - Body: `{ "password": "new_password" }`
+  - Returns: `{ "success": true, "message", "auth_providers": ["google", "local"] }`
+  - Allows Google users to add email/password login capability
+
+- `DELETE /api/delete-account` - Delete user account
+  - Headers: `Authorization: Bearer <token>`
   - Returns: `{ "success": true, "message" }`
 
 ### Chat (Trial & Authenticated)
@@ -172,12 +199,29 @@ A multilingual AI-powered chatbot designed to assist Indian farmers with agricul
    MONGO_URI=mongodb://localhost:27017/
    MONGO_DB=agrigpt
    
-   # JWT Configuration (Optional)
+   # JWT Configuration
    JWT_SECRET_KEY=your-secret-key-here
    JWT_EXPIRY_HOURS=24
+   
+   # Firebase Configuration (for Google Sign-In)
+   FIREBASE_CREDENTIALS_PATH=./firebase-credentials.json
+   
+   # Email Configuration (for OTP)
+   EMAIL_ID=your_email@gmail.com
+   EMAIL_APP_PASSWORD=your_app_password
+   OTP_EXPIRY_MINUTES=10
    ```
 
-5. **Start MongoDB**
+5. **Firebase Setup** (Optional - for Google Sign-In)
+   
+   If you want to enable Google Sign-In:
+   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+   - Enable Google Authentication in Authentication > Sign-in method
+   - Download service account key from Project Settings > Service Accounts
+   - Save as `firebase-credentials.json` in the `backend/` directory
+   - Add to `.gitignore` to keep credentials secure
+
+6. **Start MongoDB**
    ```bash
    # Windows
    mongod
@@ -186,7 +230,7 @@ A multilingual AI-powered chatbot designed to assist Indian farmers with agricul
    sudo systemctl start mongod
    ```
 
-6. **Run the Application**
+7. **Run the Application**
    ```bash
    python app.py
    ```
@@ -201,6 +245,7 @@ A multilingual AI-powered chatbot designed to assist Indian farmers with agricul
 - **pymongo** - MongoDB driver
 - **pyjwt** - JWT token handling
 - **bcrypt** - Password hashing
+- **firebase-admin** - Firebase Admin SDK for Google Sign-In verification
 - **faster-whisper** - Speech recognition (offline STT)
 - **langdetect** - Language detection
 - **pydub** - Audio processing
@@ -212,24 +257,29 @@ A multilingual AI-powered chatbot designed to assist Indian farmers with agricul
 
 ```
 backend/
-├── app.py                  # Main Flask application with all routes
-├── chat.py                 # Text chat handler with language detection
-├── voice.py                # Voice input handler with Whisper STT
-├── report.py               # Farming report generation with Gemini AI
-├── requirements.txt        # Python dependencies
-├── .env                    # Environment variables (create this)
-├── .gitignore              # Git ignore file
+├── app.py                      # Main Flask application with Firebase initialization
+├── chat.py                     # Text chat handler with language detection
+├── voice.py                    # Voice input handler with Whisper STT
+├── report.py                   # Farming report generation with Gemini AI
+├── test_db.py                  # Database connection testing utility
+├── requirements.txt            # Python dependencies
+├── .env                        # Environment variables (create this)
+├── .gitignore                  # Git ignore file
+├── firebase-credentials.json   # Firebase Admin SDK credentials (download from Firebase Console)
 ├── routes/
-│   └── auth_routes.py      # Authentication & profile endpoints
+│   ├── auth_routes.py          # Authentication & profile endpoints (email/password + Google)
+│   └── otp_routes.py           # OTP verification routes
 ├── services/
-│   ├── __init__.py         # Service package initializer
-│   ├── auth_service.py     # User auth logic with timestamps
-│   ├── db_service.py       # MongoDB operations (3 collections)
-│   ├── llm_service.py      # Gemini AI integration & system prompt
-│   └── pdf_service.py      # PDF generation utilities
+│   ├── __init__.py             # Service package initializer
+│   ├── auth_service.py         # User auth logic with Firebase sync & timestamps
+│   ├── db_service.py           # MongoDB operations (3 collections)
+│   ├── firebase_service.py     # Firebase Admin SDK integration & token verification
+│   ├── llm_service.py          # Gemini AI integration & system prompt
+│   ├── otp_service.py          # OTP generation and validation
+│   └── pdf_service.py          # PDF generation utilities
 └── utils/
-    ├── __init__.py         # Utils package initializer
-    └── config.py           # Environment configuration loader
+    ├── __init__.py             # Utils package initializer
+    └── config.py               # Environment configuration loader
 ```
 
 ## 🔐 Authentication Flow
@@ -261,7 +311,7 @@ backend/
 
 ## 🧪 Testing with Postman
 
-### 1. Signup
+### 1. Signup (Email/Password)
 ```json
 POST http://localhost:5000/api/signup
 Content-Type: application/json
@@ -273,7 +323,7 @@ Content-Type: application/json
 }
 ```
 
-### 2. Login
+### 2. Login (Email/Password)
 ```json
 POST http://localhost:5000/api/login
 Content-Type: application/json
@@ -284,7 +334,26 @@ Content-Type: application/json
 }
 ```
 
-### 3. Update Profile
+### 3. Google Sign-In (Firebase)
+```json
+POST http://localhost:5000/api/auth/google
+Authorization: Bearer <firebase_id_token>
+Content-Type: application/json
+```
+Note: Get the Firebase ID token from frontend after Google authentication
+
+### 4. Create Password (Google Users)
+```json
+POST http://localhost:5000/api/create-password
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+
+{
+  "password": "newsecure123"
+}
+```
+
+### 5. Update Profile
 ```json
 PUT http://localhost:5000/api/update-profile
 Authorization: Bearer <your-token>
@@ -292,11 +361,12 @@ Content-Type: application/json
 
 {
   "name": "John Updated",
-  "email": "newfarmer@example.com"
+  "email": "newfarmer@example.com",
+  "profilePicture": "data:image/png;base64,..."
 }
 ```
 
-### 4. Change Password
+### 6. Change Password
 ```json
 PUT http://localhost:5000/api/change-password
 Authorization: Bearer <your-token>
