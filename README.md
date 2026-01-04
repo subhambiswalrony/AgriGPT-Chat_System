@@ -11,6 +11,14 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green.svg)](https://www.mongodb.com/)
 [![License](https://img.shields.io/badge/License-Educational-yellow.svg)](LICENSE)
 
+### 🎥 Demo Video
+
+https://github.com/user-attachments/assets/YOUR_VIDEO_ID_HERE
+
+> **Note**: To add the video, upload `preview/AgriGPT 2.0.mp4` to a GitHub issue/PR, then copy the generated URL and replace `YOUR_VIDEO_ID_HERE` above.
+
+**Or watch locally**: [AgriGPT 2.0 Demo](preview/AgriGPT%202.0.mp4)
+
 </div>
 
 ---
