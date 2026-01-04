@@ -10,6 +10,9 @@ MONGO_DB = os.getenv("MONGO_DB")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-secret")
 JWT_EXPIRY_HOURS = int(os.getenv("JWT_EXPIRY_HOURS", "24"))
 
+# Firebase Configuration
+FIREBASE_CREDENTIALS_PATH = os.getenv("FIREBASE_CREDENTIALS_PATH", "./firebase-credentials.json")
+
 # Email Configuration
 EMAIL_ID = os.getenv("EMAIL_ID")
 EMAIL_APP_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
