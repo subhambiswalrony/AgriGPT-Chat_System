@@ -12,8 +12,8 @@ const TeamPage = () => {
   const teamMembers = [
     {
       name: 'Subham Biswal',
-      role: '🧠 Lead Developer',
-      description: 'Created the Architecture & Handled the Chat System, voice interaction & Report Generation',
+      role: '🧠 Contributing Developer',
+      description: 'Handled the Chat System, voice interaction & Report Generation',
       icon: MessageCircleCode, 
       gradient: 'from-green-400 to-green-600',
       skills: ['Python', 'Flask API', 'Faster Whisper', 'MongoDB'],
@@ -26,11 +26,11 @@ const TeamPage = () => {
     },
     {
       name: 'Vivekananda Champati',
-      role: '🎨 Co-Lead Developer',
+      role: '🎨 Solution Lead',
       description: 'Handled Disease Prediction and gave contribution to Frontend Development',
       icon: Cpu, 
       gradient: 'from-purple-400 to-purple-600',
-      skills: ['TypeScript', 'MongoDB', 'System Architecture'],
+      skills: ['TypeScript', 'React JS', 'Tailwind CSS', 'MongoDB'],
       image: viveka,
       social: {
         github: 'https://github.com/champati-v',
