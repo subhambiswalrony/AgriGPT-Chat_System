@@ -13,7 +13,7 @@
 
 ### 🎥 Demo Video
 
-https://github.com/user-attachments/assets/YOUR_VIDEO_ID_HERE
+https://github.com/user-attachments/assets/f87369b5-98c8-497e-bbbb-40f3d373388b
 
 > **Note**: To add the video, upload `preview/AgriGPT 2.0.mp4` to a GitHub issue/PR, then copy the generated URL and replace `YOUR_VIDEO_ID_HERE` above.
 
