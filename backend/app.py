@@ -13,10 +13,14 @@ from services.db_service import (
     get_chat_by_id,
     delete_chat_session
 )
+from services.firebase_service import initialize_firebase
 
 # Auth
 from routes.auth_routes import auth_bp, token_required, verify_token
 from routes.otp_routes import otp_bp
+
+# Initialize Firebase Admin SDK
+initialize_firebase()
 
 app = Flask(__name__)
 CORS(app)
