@@ -230,3 +230,119 @@ def verify_otp_code(email, otp):
         }
     except Exception as e:
         raise Exception(str(e))
+
+
+def sync_firebase_user_with_mongodb(firebase_user_info):
+    """
+    Sync Firebase user with MongoDB users collection
+    
+    Args:
+        firebase_user_info (dict): User info from Firebase (firebase_uid, email, name, picture, provider)
+        
+    Returns:
+        dict: User data with token
+    """
+    firebase_uid = firebase_user_info["firebase_uid"]
+    email = firebase_user_info["email"]
+    name = firebase_user_info.get("name", "")
+    picture = firebase_user_info.get("picture", "")
+    provider = firebase_user_info["provider"]
+    
+    # Check if user already exists in MongoDB
+    user = user_collection.find_one({"firebase_uid": firebase_uid})
+    
+    if not user:
+        # User doesn't exist, create new user
+        print(f"🆕 Creating new user for Firebase UID: {firebase_uid}")
+        
+        user_data = {
+            "firebase_uid": firebase_uid,
+            "email": email,
+            "name": name,
+            "profilePicture": "",
+            "auth_providers": [provider],
+            "created_at": datetime.utcnow(),
+            "last_login": datetime.utcnow()
+        }
+        
+        result = user_collection.insert_one(user_data)
+        user_id = str(result.inserted_id)
+        
+        print(f"✅ User created successfully with ID: {user_id}")
+        
+        # Fetch the newly created user document
+        user = user_collection.find_one({"_id": result.inserted_id})
+    else:
+        # User exists, update last login and add provider if new
+        user_id = str(user["_id"])
+        
+        print(f"👤 User found with Firebase UID: {firebase_uid}")
+        
+        update_data = {
+            "$set": {
+                "last_login": datetime.utcnow()
+            },
+            "$addToSet": {"auth_providers": provider}
+        }
+        
+        user_collection.update_one(
+            {"firebase_uid": firebase_uid},
+            update_data
+        )
+        
+        # Get updated user data
+        user = user_collection.find_one({"_id": ObjectId(user_id)})
+    
+    # Generate JWT token for our backend
+    token = generate_token(user_id)
+    
+    return {
+        "user_id": user_id,
+        "firebase_uid": firebase_uid,
+        "email": email,
+        "name": user.get("name", name),
+        "profilePicture": user.get("profilePicture", ""),
+        "auth_providers": user.get("auth_providers", [provider]),
+        "token": token
+    }
+
+
+def create_password_for_google_user(user_id, new_password):
+    """
+    Create/set password for a Google user (allows them to login with password later)
+    This is handled by Firebase linkWithCredential on frontend,
+    but we track it in MongoDB by adding 'local' to auth_providers
+    
+    Args:
+        user_id (str): MongoDB user ID
+        new_password (str): New password to set
+        
+    Returns:
+        dict: Success message
+    """
+    user = user_collection.find_one({"_id": ObjectId(user_id)})
+    
+    if not user:
+        raise Exception("User not found")
+    
+    # Check if user has Google as auth provider
+    if "google" not in user.get("auth_providers", []):
+        raise Exception("This feature is only for Google sign-in users")
+    
+    # Hash the password
+    hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
+    
+    # Update user with password and add 'local' to auth_providers
+    user_collection.update_one(
+        {"_id": ObjectId(user_id)},
+        {
+            "$set": {"password": hashed},
+            "$addToSet": {"auth_providers": "local"}
+        }
+    )
+    
+    return {
+        "success": True,
+        "message": "Password created successfully. You can now login with email and password.",
+        "auth_providers": ["google", "local"]
+    }
