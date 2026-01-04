@@ -26,6 +26,11 @@ wheels/
 # Environment variables
 .env
 
+# Firebase Service Account Credentials
+firebase-credentials.json
+*-firebase-adminsdk-*.json
+
+
 # IDE
 .vscode/
 .idea/
