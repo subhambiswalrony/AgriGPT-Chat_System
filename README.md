@@ -1011,22 +1011,19 @@ We welcome contributions from the community! Here's how you can help:
 <table>
   <tr>
     <td align="center">
-      <strong>Subham Biswal (Rony)</strong><br>
-      <em>Full Stack Developer</em><br>
-      <a href="https://github.com/subhambiswalrony">GitHub</a>
-    </td>
-    <td align="center">
-      <strong>Swabhiman</strong><br>
-      <em>Team Member</em><br>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <strong>Tusar</strong><br>
+      <strong>Subham Biswal</strong><br>
       <em>Team Member</em><br>
     </td>
     <td align="center">
-      <strong>Vivekananda</strong><br>
+      <strong>Vivekananda Champati</strong><br>
+      <em>Team Member</em><br>
+    </td>
+    <td align="center">
+      <strong>Tusar kanta Das</strong><br>
+      <em>Team Member</em><br>
+    </td>
+    <td align="center">
+      <strong>Swabhiman Mohanty</strong><br>
       <em>Team Member</em><br>
     </td>
   </tr>
