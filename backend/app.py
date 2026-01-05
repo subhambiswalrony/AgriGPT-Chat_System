@@ -23,7 +23,7 @@ from routes.otp_routes import otp_bp
 initialize_firebase()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="*")
 
 # Register authentication blueprint
 app.register_blueprint(auth_bp)
