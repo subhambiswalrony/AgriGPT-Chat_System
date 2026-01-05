@@ -49,7 +49,7 @@ export const requestIdleCallback = (callback: IdleRequestCallback, options?: Idl
     return window.requestIdleCallback(callback, options);
   }
   // Fallback to setTimeout
-  return window.setTimeout(callback, 1) as unknown as number;
+  return (window as Window).setTimeout(callback, 1) as unknown as number;
 };
 
 /**
