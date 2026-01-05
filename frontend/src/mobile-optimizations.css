@@ -1,0 +1,107 @@
+/* Mobile Performance Optimizations */
+
+/* Disable hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:scale-105,
+  .hover\:scale-110,
+  .hover\:scale-102,
+  .hover\:-translate-y-1,
+  .hover\:shadow-lg,
+  .hover\:shadow-xl,
+  .group:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Optimize scrolling on mobile */
+@media (max-width: 768px) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Keep gradients but optimize rendering */
+  .bg-gradient-to-br,
+  .bg-gradient-to-r,
+  .bg-gradient-to-l {
+    transform: translateZ(0);
+    will-change: auto;
+  }
+
+  /* Slightly simplify shadows on mobile for performance */
+  .shadow-2xl {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+  }
+  
+  .shadow-xl {
+    box-shadow: 0 8px 10px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+  }
+}
+
+/* Optimize animations on low-end devices */
+@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce {
+    animation-duration: 1.5s !important;
+  }
+}
+
+/* Improve text rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Optimize transforms */
+.transform {
+  will-change: transform;
+}
+
+/* Optimize for mobile scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Optimize blur effects on mobile (keep them but reduce intensity) */
+@media (max-width: 768px) {
+  .backdrop-blur-xl {
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+  
+  .backdrop-blur-lg {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+  
+  .backdrop-blur-md {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+}
+
+/* Hardware acceleration for better performance */
+.motion-div {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}

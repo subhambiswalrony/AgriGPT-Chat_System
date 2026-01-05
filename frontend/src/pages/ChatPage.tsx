@@ -1,9 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Send, Bot, User, Mic, MicOff, Volume2, Sparkles, X, Trash2, Plus, MessageSquare, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 import { getApiUrl, API_ENDPOINTS } from '../config/api';
 import { useLocation } from 'react-router-dom';
+import { debounce } from '../utils/debounce';
+import { isMobileDevice, getAnimationDuration } from '../utils/performance';
 
 interface Message {
   id: string;
@@ -24,6 +26,8 @@ interface ChatSession {
 
 const ChatPage = () => {
   const location = useLocation();
+  const shouldReduceMotion = useReducedMotion();
+  const isMobile = useMemo(() => isMobileDevice(), []);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -295,7 +299,7 @@ const ChatPage = () => {
   };
 
   // Refresh chat sessions list
-  const refreshChatSessions = async () => {
+  const refreshChatSessions = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -313,15 +317,23 @@ const ChatPage = () => {
     } catch (error) {
       console.error('Failed to refresh chat sessions:', error);
     }
-  };
+  }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const scrollToBottom = useCallback(() => {
+    // Use instant scroll on mobile for better performance
+    const behavior = isMobile ? 'instant' : 'smooth';
+    messagesEndRef.current?.scrollIntoView({ behavior: behavior as ScrollBehavior });
+  }, [isMobile]);
+
+  // Debounced scroll for better performance
+  const debouncedScroll = useMemo(
+    () => debounce(scrollToBottom, 100),
+    [scrollToBottom]
+  );
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    debouncedScroll();
+  }, [messages, debouncedScroll]);
 
   // Load speech synthesis voices
   useEffect(() => {

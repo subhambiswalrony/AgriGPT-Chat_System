@@ -1,20 +1,29 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Loader from './components/Loader';
 import ScrollToTop from './components/ScrollToTop';
-import HomePage from './pages/HomePage';
-import ChatPage from './pages/ChatPage';
-import UploadPage from './pages/UploadPage';
-import ReportPage from './pages/ReportPage';
-import TeamPage from './pages/TeamPage';
-import WeatherPage from './pages/WeatherPage';
-import AuthPage from './pages/AuthPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import SettingsPage from './pages/SettingsPage';
-import FeedbackPage from './pages/FeedbackPage';
-import NotFoundPage from './pages/NotFoundPage';
 import Navigation from './components/Navigation';
+
+// Lazy load pages for better performance
+const HomePage = React.lazy(() => import('./pages/HomePage'));
+const ChatPage = React.lazy(() => import('./pages/ChatPage'));
+const UploadPage = React.lazy(() => import('./pages/UploadPage'));
+const ReportPage = React.lazy(() => import('./pages/ReportPage'));
+const TeamPage = React.lazy(() => import('./pages/TeamPage'));
+const WeatherPage = React.lazy(() => import('./pages/WeatherPage'));
+const AuthPage = React.lazy(() => import('./pages/AuthPage'));
+const ResetPasswordPage = React.lazy(() => import('./pages/ResetPasswordPage'));
+const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
+const FeedbackPage = React.lazy(() => import('./pages/FeedbackPage'));
+const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+  </div>
+);
 
 function App() {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -43,19 +52,21 @@ function App() {
         <ScrollToTop />
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
           <Navigation />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="/upload" element={<UploadPage />} />
-            <Route path="/report" element={<ReportPage />} />
-            <Route path="/team" element={<TeamPage />} />
-            <Route path="/weather" element={<WeatherPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/feedback" element={<FeedbackPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/upload" element={<UploadPage />} />
+              <Route path="/report" element={<ReportPage />} />
+              <Route path="/team" element={<TeamPage />} />
+              <Route path="/weather" element={<WeatherPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </div>
       </Router>
     </ThemeProvider>
