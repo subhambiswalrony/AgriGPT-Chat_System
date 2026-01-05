@@ -1,6 +1,11 @@
 # 🌾 AgriGPT - Agricultural Expert Chatbot Backend
 
-A multilingual AI-powered chatbot designed to assist Indian farmers with agriculture and farming-related queries. Built with Flask and powered by Google's Gemini AI.
+A multilingual AI-powered chatbot backend designed to assist Indian farmers with agriculture and farming-related queries. Built with Flask and powered by Google's Gemini 2.5-flash AI model, featuring dual authentication (Email/Password + Google Sign-In via Firebase).
+
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)](https://flask.palletsprojects.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Latest-green.svg)](https://www.mongodb.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-Admin_SDK-orange.svg)](https://firebase.google.com/)
 
 ## 🚀 Core Features
 
@@ -26,11 +31,13 @@ A multilingual AI-powered chatbot designed to assist Indian farmers with agricul
 - Same-language enforcement (no language mixing)
 
 ### 3. **Voice Input Support**
-- Speech-to-text transcription using Faster Whisper (offline, free)
-- Whisper model: `tiny` (CPU, int8 compute)
-- Audio file processing (supports multiple formats)
-- Voice queries in multiple Indian languages
+- Speech-to-text transcription using Faster Whisper (completely offline and free)
+- Whisper model: `tiny` (optimized for CPU with int8 compute)
+- Supports multiple audio formats (WAV, MP3, etc.)
+- Voice queries work seamlessly in 13+ Indian languages
 - AI-based agriculture query validation for voice inputs
+- Real-time audio processing and transcription
+- **Authentication required** for voice features
 
 ### 4. **User Authentication & Authorization**
 - JWT-based authentication system
@@ -239,48 +246,97 @@ A multilingual AI-powered chatbot designed to assist Indian farmers with agricul
 
 ## 📦 Dependencies
 
-- **flask** - Web framework
-- **flask-cors** - Cross-origin resource sharing
-- **google-generativeai** - Gemini AI integration
-- **pymongo** - MongoDB driver
-- **pyjwt** - JWT token handling
-- **bcrypt** - Password hashing
-- **firebase-admin** - Firebase Admin SDK for Google Sign-In verification
-- **faster-whisper** - Speech recognition (offline STT)
-- **langdetect** - Language detection
-- **pydub** - Audio processing
-- **python-dotenv** - Environment variable management
-- **weasyprint** - PDF generation support
-- **numpy, scipy, sounddevice, torch** - Audio processing dependencies
+### Core Framework
+- **flask** 3.0+ - Web framework for API development
+- **flask-cors** - Cross-origin resource sharing for frontend integration
+
+### AI & Language Processing
+- **google-generativeai** - Google Gemini 2.5-flash AI integration
+- **langdetect** - Automatic language detection (13+ Indian languages)
+- **faster-whisper** - Offline speech-to-text recognition (Whisper tiny model)
+
+### Database & Storage
+- **pymongo** - MongoDB driver for data persistence
+
+### Authentication & Security
+- **pyjwt** - JWT token generation and validation
+- **bcrypt** - Password hashing and verification
+- **firebase-admin** - Firebase Admin SDK for Google Sign-In token verification
+
+### Audio Processing
+- **pydub** - Audio file format conversion and processing
+- **numpy** - Numerical computing for audio data
+- **scipy** - Scientific computing utilities
+- **sounddevice** - Audio input/output stream handling
+
+### Utilities
+- **python-dotenv** - Environment variable management from .env files
+- **weasyprint** - PDF generation support for farming reports
 
 ## 📁 Project Structure
 
 ```
 backend/
-├── app.py                      # Main Flask application with Firebase initialization
-├── chat.py                     # Text chat handler with language detection
-├── voice.py                    # Voice input handler with Whisper STT
-├── report.py                   # Farming report generation with Gemini AI
-├── test_db.py                  # Database connection testing utility
-├── requirements.txt            # Python dependencies
-├── .env                        # Environment variables (create this)
-├── .gitignore                  # Git ignore file
-├── firebase-credentials.json   # Firebase Admin SDK credentials (download from Firebase Console)
-├── routes/
-│   ├── auth_routes.py          # Authentication & profile endpoints (email/password + Google)
-│   └── otp_routes.py           # OTP verification routes
-├── services/
-│   ├── __init__.py             # Service package initializer
-│   ├── auth_service.py         # User auth logic with Firebase sync & timestamps
-│   ├── db_service.py           # MongoDB operations (3 collections)
-│   ├── firebase_service.py     # Firebase Admin SDK integration & token verification
-│   ├── llm_service.py          # Gemini AI integration & system prompt
-│   ├── otp_service.py          # OTP generation and validation
-│   └── pdf_service.py          # PDF generation utilities
-└── utils/
-    ├── __init__.py             # Utils package initializer
-    └── config.py               # Environment configuration loader
+├── 📄 app.py                      # Main Flask application entry point with Firebase initialization
+├── 📄 chat.py                     # Text chat handler with multilingual language detection
+├── 📄 voice.py                    # Voice input handler with Faster Whisper STT (offline)
+├── 📄 report.py                   # AI-powered farming report generation with Gemini AI
+├── 📄 test_db.py                  # Database connection testing utility script
+├── 📄 requirements.txt            # Python dependencies and versions
+├── 📄 .env                        # Environment variables (create this - not in repo)
+├── 📄 .gitignore                  # Git ignore patterns
+├── 📄 firebase-credentials.json   # Firebase Admin SDK credentials (download from console)
+├── 📄 README.md                   # Backend documentation (this file)
+│
+├── 📁 routes/                     # API route handlers
+│   ├── 📄 __init__.py            # Routes package initializer
+│   ├── 📄 auth_routes.py         # Authentication & profile endpoints (dual auth support)
+│   ├── 📄 otp_routes.py          # OTP verification and email routes
+│   └── 📁 __pycache__/           # Python compiled bytecode cache
+│
+├── 📁 services/                   # Business logic layer
+│   ├── 📄 __init__.py            # Services package initializer
+│   ├── 📄 auth_service.py        # User authentication logic with Firebase sync & timestamps
+│   ├── 📄 db_service.py          # MongoDB operations (users, chat_history, farming_reports)
+│   ├── 📄 firebase_service.py    # Firebase Admin SDK integration & token verification
+│   ├── 📄 llm_service.py         # Google Gemini AI integration & system prompts
+│   ├── 📄 otp_service.py         # OTP generation, validation, and email sending
+│   ├── 📄 pdf_service.py         # PDF generation utilities for farming reports
+│   └── 📁 __pycache__/           # Python compiled bytecode cache
+│
+├── 📁 utils/                      # Utility functions and helpers
+│   ├── 📄 __init__.py            # Utils package initializer
+│   ├── 📄 config.py              # Environment configuration loader from .env
+│   └── 📁 __pycache__/           # Python compiled bytecode cache
+│
+└── 📁 __pycache__/                # Root-level Python compiled bytecode cache
 ```
+
+### Key Files Explained
+
+**Core Application Files:**
+- `app.py` - Flask server initialization, CORS setup, route registration, Firebase Admin SDK init
+- `chat.py` - Handles text chat requests, language detection, AI validation, response generation
+- `voice.py` - Processes voice audio files, Whisper transcription, language detection from audio
+- `report.py` - Generates comprehensive farming reports with 4 sections in user's language
+- `test_db.py` - Test MongoDB connectivity, view collections, test CRUD operations
+
+**Routes (API Endpoints):**
+- `auth_routes.py` - `/api/signup`, `/api/login`, `/api/auth/google`, `/api/update-profile`, `/api/change-password`, `/api/create-password`, `/api/delete-account`
+- `otp_routes.py` - `/api/send-otp`, `/api/verify-otp`, `/api/reset-password`
+
+**Services (Business Logic):**
+- `auth_service.py` - User creation, login validation, password hashing (bcrypt), JWT generation
+- `db_service.py` - MongoDB connection, CRUD operations for 3 collections
+- `firebase_service.py` - Firebase token verification, Google user sync
+- `llm_service.py` - Gemini AI client, system prompts, response generation
+- `otp_service.py` - Email sending via SMTP, OTP generation, validation
+- `pdf_service.py` - Report to PDF conversion (future feature)
+
+**Configuration:**
+- `requirements.txt` - Flask, PyMongo, Firebase Admin, Google GenAI, Faster Whisper, etc.
+- `.env` - API keys (Gemini, Firebase), MongoDB URI, JWT secret, email credentials
+- `config.py` - Loads environment variables, provides configuration constants
 
 ## 🔐 Authentication Flow
 
@@ -438,54 +494,81 @@ audio: <audio-file.wav>
 
 MongoDB Database: `agrigpt`
 
-### Users Collection
+### 1. Users Collection (`users`)
 ```json
 {
-  "_id": ObjectId,
+  "_id": ObjectId("..."),
   "email": "farmer@example.com",
-  "password": "hashed_bcrypt_password",
+  "password": "$2b$12$...",  // Hashed password (optional for Google-only users)
   "name": "John Farmer",
-  "created_at": ISODate("2024-01-01T00:00:00.000Z"),
-  "last_login": ISODate("2024-01-15T10:30:00.000Z")
+  "profilePicture": "data:image/png;base64,...",  // Base64 encoded image
+  "firebase_uid": "firebase_user_id_here",  // Only for Google Sign-In users
+  "auth_providers": ["google", "local"],  // Array of authentication methods
+  "created_at": ISODate("2025-01-04T10:30:00.000Z"),
+  "last_login": ISODate("2025-01-05T15:45:00.000Z")
 }
 ```
 
-### Chat History Collection
+### 2. Chat History Collection (`chat_history`)
 ```json
 {
-  "_id": ObjectId,
-  "user_id": "65abc123...",
+  "_id": ObjectId("..."),
+  "user_id": "user_object_id",  // References users._id
   "input_type": "text",  // or "voice"
   "question": "धान की खेती कैसे करें?",
-  "answer": "धान की खेती के लिए...",
+  "answer": "धान की खेती के लिए सबसे पहले...",
   "response_type": "ai",  // or "fallback"
-  "language": "Hindi",
-  "timestamp": ISODate("2024-01-15T10:35:00.000Z")
+  "language": "Hindi",  // Detected language name
+  "timestamp": ISODate("2025-01-05T10:35:00.000Z")
 }
 ```
 
-### Farming Reports Collection
+### 3. Farming Reports Collection (`farming_reports`)
 ```json
 {
-  "_id": ObjectId,
-  "user_id": "65abc123...",
+  "_id": ObjectId("..."),
+  "user_id": "user_object_id",  // References users._id
   "crop_name": "Rice",
   "region": "Odisha",
   "language": "English",
   "report_data": {
     "sowingAdvice": [
-      { "emoji": "🌱", "text": "Best sowing time..." },
-      { "emoji": "📏", "text": "Seed depth and spacing..." },
-      { "emoji": "🌾", "text": "Row spacing..." },
-      { "emoji": "💧", "text": "Watering..." }
+      { "emoji": "🌱", "text": "Best sowing time is June-July..." },
+      { "emoji": "📏", "text": "Seed depth: 2-3 cm, spacing: 20x15 cm" },
+      { "emoji": "🌾", "text": "Row spacing 20 cm for better growth" },
+      { "emoji": "💧", "text": "Regular watering needed in first 2 weeks" }
     ],
-    "fertilizerPlan": [...],
-    "weatherProtection": [...],
-    "farmingCalendar": [...]
+    "fertilizerPlan": [
+      { "emoji": "🌿", "text": "NPK 120:60:40 kg/hectare recommended" },
+      { "emoji": "🔢", "text": "Split doses: 50% basal, 25% after 30 days..." },
+      { "emoji": "🌱", "text": "Organic manure: 10 tons/hectare" },
+      { "emoji": "💧", "text": "Foliar spray of micronutrients at flowering" }
+    ],
+    "weatherProtection": [
+      { "emoji": "☀️", "text": "Protect from extreme heat with irrigation" },
+      { "emoji": "🌧️", "text": "Ensure proper drainage during heavy rain" },
+      { "emoji": "❄️", "text": "Cold protection during winter months" },
+      { "emoji": "💨", "text": "Windbreaks recommended for exposed areas" }
+    ],
+    "farmingCalendar": [
+      { "emoji": "📅", "text": "Week 1-2: Land preparation and sowing" },
+      { "emoji": "🌱", "text": "Week 3-4: First weeding and thinning" },
+      { "emoji": "💧", "text": "Week 5-8: Regular irrigation and fertilizer" },
+      { "emoji": "🌾", "text": "Week 12-16: Harvesting when grain is mature" }
+    ]
   },
-  "timestamp": ISODate("2024-01-15T11:00:00.000Z")
+  "timestamp": ISODate("2025-01-05T11:00:00.000Z")
 }
 ```
+
+### Key Schema Features
+- **Timezone-aware timestamps**: All dates stored in UTC using `datetime.now(timezone.utc)`
+- **Flexible authentication**: Users can have Google-only, password-only, or dual authentication
+- **Optional fields**: `password` and `firebase_uid` are optional based on auth method
+- **Array tracking**: `auth_providers` tracks all authentication methods per user
+- **Base64 images**: Profile pictures stored as data URIs for easy retrieval
+- **Language tracking**: Each chat and report tracks the language used
+- **Response metadata**: Chat history includes input type and response type for analytics
 
 ## 🎯 Core Functionality Details
 
@@ -568,143 +651,429 @@ This script will:
 
 ## 🚀 Deployment Notes
 
-### Production Configuration
-1. Change `JWT_SECRET_KEY` to a strong random string
-2. Set `debug=False` in `app.run()`
-3. Use production MongoDB instance
-4. Enable HTTPS for secure token transmission
-5. Set up proper CORS origins
-6. Use environment-specific `.env` files
+### Production Configuration Checklist
 
-### Recommended Production Setup
-- **Web Server**: Gunicorn or uWSGI
-- **Reverse Proxy**: Nginx
-- **Database**: MongoDB Atlas (cloud) or self-hosted
-- **SSL/TLS**: Let's Encrypt certificates
-- **Monitoring**: Application logging and error tracking
+1. **Security Settings**
+   ```env
+   # Generate strong random secret
+   JWT_SECRET_KEY=your-very-long-random-secret-key-here
+   
+   # Set Flask to production mode
+   FLASK_ENV=production
+   ```
+
+2. **Application Settings**
+   ```python
+   # In app.py, change:
+   app.run(debug=False, host='0.0.0.0', port=5000)
+   ```
+
+3. **Database Configuration**
+   - Use MongoDB Atlas (cloud) for production
+   - Enable authentication and IP whitelisting
+   - Regular automated backups
+   - Connection pooling for better performance
+
+4. **CORS Configuration**
+   ```python
+   # Restrict to your frontend domain(s)
+   CORS(app, origins=["https://your-frontend-domain.com"])
+   ```
+
+5. **HTTPS/SSL**
+   - Always use HTTPS in production
+   - Required for secure token transmission
+   - Firebase requires HTTPS for production domains
+
+6. **Firebase Configuration**
+   - Secure `firebase-credentials.json` file
+   - Never commit to version control
+   - Use environment variables or secure file storage
+   - Restrict service account permissions
+
+### Recommended Production Stack
+
+**Web Server**
+- **Gunicorn** or **uWSGI** for WSGI application server
+  ```bash
+  pip install gunicorn
+  gunicorn -w 4 -b 0.0.0.0:5000 app:app
+  ```
+
+**Reverse Proxy**
+- **Nginx** for load balancing and SSL termination
+  ```nginx
+  server {
+      listen 443 ssl;
+      server_name api.yourdomain.com;
+      
+      location / {
+          proxy_pass http://localhost:5000;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+      }
+  }
+  ```
+
+**Database**
+- **MongoDB Atlas** (managed cloud service)
+- Or self-hosted MongoDB with replica sets
+
+**SSL/TLS**
+- **Let's Encrypt** for free SSL certificates
+- Auto-renewal with certbot
+
+**Monitoring & Logging**
+- Application logging with Python `logging` module
+- Error tracking with Sentry or similar
+- Performance monitoring with New Relic or Datadog
+- MongoDB monitoring with Atlas built-in tools
+
+### Deployment Platforms
+
+**Recommended Options:**
+1. **Render.com** - Easy deployment with free tier
+2. **Railway.app** - Simple deployment with good free tier
+3. **Heroku** - Traditional PaaS (paid after free tier expires)
+4. **DigitalOcean App Platform** - Managed deployment
+5. **AWS Elastic Beanstalk** - Scalable AWS deployment
+6. **Google Cloud Run** - Serverless container deployment
+
+### Environment-Specific Configuration
+
+Create separate `.env` files:
+- `.env.development` - Local development settings
+- `.env.staging` - Staging environment
+- `.env.production` - Production settings
+
+Load based on environment:
+```python
+from dotenv import load_dotenv
+import os
+
+env = os.getenv('FLASK_ENV', 'development')
+load_dotenv(f'.env.{env}')
+```
 
 ## 📝 Development Tips
 
 ### Adding New Languages
-1. Add language to `LANGUAGE_MAP` in `chat.py` and `report.py`
-2. Add fallback message in `FALLBACK_MESSAGES`
-3. Test language detection
-4. Add language-specific prompts for reports
+
+1. **Update Language Mapping**
+   ```python
+   # In chat.py and report.py
+   LANGUAGE_MAP = {
+       "english": "English",
+       "hindi": "Hindi",
+       "odia": "Odia",
+       # Add new language here
+       "nepali": "Nepali",
+   }
+   ```
+
+2. **Add Fallback Messages**
+   ```python
+   # In chat.py
+   FALLBACK_MESSAGES = {
+       "English": "I can only answer agriculture-related questions.",
+       "Hindi": "मैं केवल कृषि संबंधी प्रश्नों का उत्तर दे सकता हूं।",
+       # Add new language fallback
+       "Nepali": "म कृषि सम्बन्धी प्रश्नहरूको मात्र जवाफ दिन सक्छु।",
+   }
+   ```
+
+3. **Test Language Detection**
+   - Create test cases with sample text
+   - Verify Unicode handling (especially for Odia)
+   - Test AI response in the new language
+
+4. **Update Report Prompts**
+   - Add language-specific system prompts in `report.py`
+   - Test report generation with new language
+   - Verify emoji and formatting work correctly
 
 ### Debugging Report Generation
-- Check console output for debug logs
-- Monitor section detection patterns
-- Review AI response preview (first 200 chars)
-- Check fallback warnings
+
+**Enable Debug Logging**
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
+
+**Check Console Output**
+- Section detection patterns
+- AI response preview (first 200 characters)
+- Parsing success/failure messages
+- Fallback warnings
+
+**Common Issues**
+- **Missing sections**: AI response format might have changed
+- **Empty points**: Check section detection regex patterns
+- **Wrong language**: Verify language parameter is passed correctly
+- **Fallback triggered**: Review AI response format
 
 ### Testing Authentication
+
+**Generate Test JWT Token**
 ```python
-# Generate test token
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 payload = {
-    "user_id": "test123",
-    "exp": datetime.utcnow() + timedelta(hours=24)
+    "user_id": "test_user_123",
+    "email": "test@example.com",
+    "exp": datetime.now(timezone.utc) + timedelta(hours=24)
 }
-token = jwt.encode(payload, "your-secret", algorithm="HS256")
-print(token)
+
+secret = "your-secret-key"
+token = jwt.encode(payload, secret, algorithm="HS256")
+print(f"Test Token: {token}")
+```
+
+**Verify Token in Postman**
+```
+Authorization: Bearer <generated_token>
+```
+
+**Test Firebase Token Verification**
+```python
+from firebase_admin import auth
+
+# This should be done in your service
+decoded_token = auth.verify_id_token(firebase_id_token)
+print(f"Firebase UID: {decoded_token['uid']}")
+print(f"Email: {decoded_token.get('email')}")
+```
+
+### Performance Optimization Tips
+
+1. **Database Indexing**
+   ```javascript
+   // In MongoDB shell
+   db.users.createIndex({ "email": 1 }, { unique: true })
+   db.users.createIndex({ "firebase_uid": 1 })
+   db.chat_history.createIndex({ "user_id": 1, "timestamp": -1 })
+   db.farming_reports.createIndex({ "user_id": 1, "timestamp": -1 })
+   ```
+
+2. **Connection Pooling**
+   ```python
+   # In db_service.py
+   client = MongoClient(
+       mongo_uri,
+       maxPoolSize=50,
+       minPoolSize=10,
+       serverSelectionTimeoutMS=5000
+   )
+   ```
+
+3. **Caching Strategies**
+   - Cache frequently accessed data (e.g., user profiles)
+   - Use Redis for session storage
+   - Cache AI responses for common queries
+
+4. **Async Processing**
+   - Consider using Celery for background tasks
+   - Offload report generation to background workers
+   - Queue voice transcription for large files
+
+### Code Quality Tools
+
+**Linting & Formatting**
+```bash
+# Install tools
+pip install black flake8 pylint
+
+# Format code
+black .
+
+# Check code quality
+flake8 .
+pylint **/*.py
+```
+
+**Type Checking**
+```bash
+pip install mypy
+mypy .
+```
+
+**Security Scanning**
+```bash
+pip install bandit
+bandit -r .
 ```
 
 ## 📚 Additional Resources
 
-- [Google Gemini API Documentation](https://ai.google.dev/docs)
-- [Flask Documentation](https://flask.palletsprojects.com/)
-- [MongoDB Python Driver](https://pymongo.readthedocs.io/)
-- [Faster Whisper](https://github.com/guillaumekln/faster-whisper)
-- [JWT.io](https://jwt.io/) - JWT token debugger
+### Official Documentation
+- [Google Gemini API Documentation](https://ai.google.dev/docs) - Gemini AI integration guide
+- [Flask Documentation](https://flask.palletsprojects.com/) - Web framework reference
+- [MongoDB Python Driver (PyMongo)](https://pymongo.readthedocs.io/) - Database operations
+- [Firebase Admin SDK for Python](https://firebase.google.com/docs/admin/setup) - Authentication setup
+- [Faster Whisper GitHub](https://github.com/guillaumekln/faster-whisper) - Speech-to-text library
+- [JWT.io](https://jwt.io/) - JWT token debugger and information
+- [Python Dotenv](https://github.com/theskumar/python-dotenv) - Environment variables management
+
+### Tutorials & Guides
+- [Flask REST API Tutorial](https://flask.palletsprojects.com/en/latest/tutorial/)
+- [MongoDB University](https://university.mongodb.com/) - Free MongoDB courses
+- [Firebase Authentication Guide](https://firebase.google.com/docs/auth)
+- [Building REST APIs with Flask](https://realpython.com/flask-connexion-rest-api/)
+
+### Tools & Utilities
+- [Postman](https://www.postman.com/) - API testing and development
+- [MongoDB Compass](https://www.mongodb.com/products/compass) - MongoDB GUI
+- [Google AI Studio](https://makersuite.google.com/app/apikey) - Get Gemini API keys
+- [Firebase Console](https://console.firebase.google.com/) - Firebase project management
+
+### Community & Support
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/flask) - Flask questions
+- [MongoDB Community Forums](https://www.mongodb.com/community/forums/) - Database help
+- [Firebase Community](https://firebase.google.com/community) - Firebase discussions
+- [Python Discord](https://discord.gg/python) - Python programming help
+
+### Video Resources
+- [Flask Mega-Tutorial by Miguel Grinberg](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world)
+- [MongoDB University YouTube Channel](https://www.youtube.com/c/MongoDBofficial)
+- [Firebase YouTube Channel](https://www.youtube.com/firebase)
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please ensure:
-- Code follows PEP 8 style guidelines
-- All new features include proper error handling
-- Language support is comprehensive
-- Agriculture domain validation works correctly
+We welcome contributions to make AgriGPT better for Indian farmers!
+
+### How to Contribute
+
+1. **Fork the Repository**
+   ```bash
+   git clone https://github.com/subhambiswalrony/AgriGPT-Chat-Report_System.git
+   cd AgriGPT-Chat-Report_System/backend
+   ```
+
+2. **Create a Feature Branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+3. **Make Your Changes**
+   - Follow PEP 8 style guidelines
+   - Add proper error handling
+   - Include docstrings for functions
+   - Write meaningful commit messages
+
+4. **Test Your Changes**
+   ```bash
+   # Test database connection
+   python test_db.py
+   
+   # Run the application
+   python app.py
+   ```
+
+5. **Submit Pull Request**
+   - Describe your changes clearly
+   - Reference any related issues
+   - Include screenshots/examples if applicable
+
+### Contribution Guidelines
+
+**Code Style**
+- Follow PEP 8 Python style guide
+- Use meaningful variable and function names
+- Add comments for complex logic
+- Keep functions focused and small
+
+**Testing**
+- Test all new features thoroughly
+- Ensure backward compatibility
+- Test with multiple languages
+- Verify database operations
+
+**Documentation**
+- Update README.md if needed
+- Add docstrings to new functions
+- Comment non-obvious code
+- Update API documentation
+
+**What to Contribute**
+- 🐛 Bug fixes
+- ✨ New features (language support, AI improvements)
+- 📝 Documentation improvements
+- 🎨 Code quality improvements
+- 🔒 Security enhancements
+- ⚡ Performance optimizations
+
+## 👥 Team
+
+**AgriGPT Development Team**
+- **Subham Biswal** - Full Stack Developer
+- **Vivekananda Champati** - Backend Developer
+- **Tusar Kanta Das** - Frontend Developer
+- **Swabhiman Mohanty** - AI/ML Integration
 
 ## 📄 License
 
-This project is part of a Major Project for educational purposes.
+This project is developed as part of a Major Project for educational purposes at **[Your College/University Name]**.
 
-## 👥 Support
+### Usage Terms
+- ✅ Free to use for educational purposes
+- ✅ Free for non-commercial agricultural support
+- ❌ Commercial use requires permission
+- ❌ Redistribution without attribution not allowed
 
-For issues or questions:
-- Check troubleshooting section above
-- Review database schema and API documentation
-- Test with `test_db.py` script
-- Verify environment variables in `.env`
+### Third-Party Licenses
+This project uses several open-source libraries. Please see their respective licenses:
+- Flask (BSD-3-Clause License)
+- MongoDB (SSPL)
+- Firebase (Google Terms of Service)
+- Google Gemini (Google Cloud Terms)
+
+## 👥 Support & Contact
+
+### Getting Help
+
+**For Technical Issues:**
+1. Check the [Troubleshooting](#-troubleshooting) section
+2. Review [API Documentation](#-api-endpoints)
+3. Test with `test_db.py` script
+4. Verify environment variables in `.env`
+
+**For Questions or Support:**
+- 📧 **Email**: biswalsubhamrony@gmail.com
+- 🐛 **GitHub Issues**: [Create an issue](https://github.com/subhambiswalrony/AgriGPT-Chat-Report_System/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/subhambiswalrony/AgriGPT-Chat-Report_System/discussions)
+
+**Bug Reports:**
+When reporting bugs, please include:
+- Python version
+- Operating system
+- Error messages and stack traces
+- Steps to reproduce
+- Expected vs actual behavior
+
+**Feature Requests:**
+We welcome suggestions! Please include:
+- Clear description of the feature
+- Use case and benefits
+- Any relevant examples or mockups
+
+## 🙏 Acknowledgments
+
+Special thanks to:
+- **Google** for Gemini AI API and Firebase services
+- **MongoDB** for excellent database technology
+- **OpenAI** for Whisper speech recognition model
+- **Indian Farmers** for inspiration and feedback
+- **Open Source Community** for amazing tools and libraries
 
 ---
+
+<div align="center">
 
 **Built with ❤️ for Indian Farmers** 🌾
-  "created_at": ISODate,
-  "last_login": ISODate
-}
-```
 
-### Chat History Collection
-```json
-{
-  "_id": ObjectId,
-  "user_id": "user_object_id",
-  "question": "User's question",
-  "answer": "AI's response",
-  "response_type": "ai" | "fallback",
-  "language": "Hindi",
-  "timestamp": ISODate
-}
-```
+**Last Updated**: January 2026 | **Version**: 2.0
 
-### Users Connections Collection
-```json
-{
-  "_id": ObjectId,
-  "user_id": "user_object_id",
-  "connection_data": {},
-  "timestamp": ISODate
-}
-```
+[⬆ Back to Top](#-agrigpt---agricultural-expert-chatbot-backend)
 
-## 🐛 Troubleshooting
-
-### MongoDB Connection Error
-- Ensure MongoDB is running: `mongod`
-- Check MONGO_URI in `.env` file
-
-### Gemini API Error
-- Verify GEMINI_API_KEY is correct
-- Check API quota limits
-
-### Language Detection Issues
-- Ensure `langdetect` is installed
-- Odia text uses special Unicode handling
-
-### Audio Processing Error
-- Install ffmpeg for audio format support
-- Check audio file format compatibility
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
-
-## 📄 License
-
-This project is part of a Major Project for educational purposes.
-
-## 👨‍💻 Developer
-
-Created with ❤️ for Indian farmers
-
----
-
-**Note**: Replace `<your-token>` and API keys with actual values when testing.
+</div>
