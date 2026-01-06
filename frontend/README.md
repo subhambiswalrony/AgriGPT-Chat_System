@@ -97,7 +97,39 @@ A modern, high-performance React + TypeScript frontend for the AgriGPT agricultu
 - Account settings and preferences
 - Delete account option with confirmation
 
-### 7. **Modern UI/UX Design**
+### 7. **Feedback System**
+- **User feedback submission** page for suggestions and bug reports
+- Contact form with name, email, and message fields
+- Optional authentication - works for both trial and authenticated users
+- Email validation and form validation
+- Success/error toast notifications
+- Beautiful gradient design with animated submit button
+- Helps improve AgriGPT based on real user feedback
+
+### 8. **Admin Dashboard** (Developer-only)
+- **Developer authentication** via separate `developers` collection
+- **Comprehensive statistics dashboard**:
+  - Total users with weekly growth trends
+  - Chat sessions and activity metrics
+  - Reports generated with weekly breakdown
+  - Most used feature analytics with visual indicators
+  - Weekly activity summary across all features
+- **Advanced feedback management**:
+  - Side-by-side layout comparing active vs resolved feedbacks
+  - Filter feedbacks by status (new, in-progress, resolved)
+  - Mark feedbacks as resolved with timestamp tracking
+  - Delete feedbacks with beautiful confirmation modal
+  - Auto-delete resolved feedbacks after 7 days
+  - Independent scrollable columns for better UX
+- **Enhanced empty states**:
+  - Animated icons with gradient glow effects
+  - Contextual messages based on feedback state
+  - Professional badges for status indicators
+- **Real-time updates** for feedback operations
+- **Access control**: Restricted to verified developers only
+- **Beautiful gradient accents** and modern card design
+
+### 9. **Modern UI/UX Design**
 - **Dark/Light theme toggle** with smooth transitions
 - Persistent theme preference in localStorage
 - Fully responsive design for mobile, tablet, and desktop
@@ -110,7 +142,7 @@ A modern, high-performance React + TypeScript frontend for the AgriGPT agricultu
 - Toast notifications for user feedback
 - Error boundaries for graceful error handling
 
-### 8. **Performance Optimizations** ⚡
+### 10. **Performance Optimizations** ⚡
 - **Code splitting** with React.lazy() for all routes
 - **Lazy loading** of heavy libraries (PDF, Markdown, Animations)
 - **60% smaller initial bundle** size (200 KB from 500 KB)
@@ -387,6 +419,7 @@ frontend/
 │   │   └── 📄 useWeather.ts           # Weather data fetching hook
 │   │
 │   ├── 📁 pages/                      # Page components (lazy loaded)
+│   │   ├── 📄 AdminPanelPage.tsx      # Admin dashboard with statistics & feedback management (developer-only)
 │   │   ├── 📄 AuthPage.tsx            # Login/Signup with dual authentication
 │   │   ├── 📄 ChatPage.tsx            # AI chat interface with voice support
 │   │   ├── 📄 FeedbackPage.tsx        # User feedback submission form
@@ -442,7 +475,9 @@ frontend/
 - `WeatherPage.tsx` - Weather cards, forecast, location detection
 - `SettingsPage.tsx` - Profile edit, password change, profile picture upload
 - `TeamPage.tsx` - Team member cards with photos and roles
-- `FeedbackPage.tsx` - Feedback form submission
+- `FeedbackPage.tsx` - Feedback form submission with email validation
+- `AdminPanelPage.tsx` - Developer-only dashboard with statistics, feedback management, side-by-side layout, delete confirmation modal
+- `NotFoundPage.tsx` - 404 error page with navigation back home
 
 **Utils:**
 - `debounce.ts` - Debounce function for scroll, search, input optimization
@@ -522,6 +557,7 @@ Authorization: Bearer <jwt_token>
 - `/weather` - Weather dashboard
 - `/settings` - User settings and profile management (protected)
 - `/feedback` - User feedback form
+- `/admin` - Admin dashboard with statistics & feedback management (developer-only, protected)
 - `/reset-password` - Password reset (future)
 - `*` - 404 Not Found page
 
@@ -529,6 +565,9 @@ Authorization: Bearer <jwt_token>
 
 Routes that require authentication:
 - `/settings` - User settings and profile
+
+Routes that require developer authentication:
+- `/admin` - Admin panel with analytics and feedback management
 
 Features that require authentication:
 - Voice input in chat
@@ -542,6 +581,7 @@ If user is not authenticated, they can still use:
 - Report generation (not saved)
 - Weather information
 - General browsing
+- Feedback submission
 
 ## 💾 Local Storage
 
