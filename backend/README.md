@@ -164,6 +164,41 @@ A multilingual AI-powered chatbot backend designed to assist Indian farmers with
   - Body: `{ "cropName": "Rice", "region": "Odisha", "language": "English" }`
   - Returns: Report object with 4 sections (sowing, fertilizer, weather, calendar)
 
+### Feedback System (Trial & Authenticated)
+- `POST /api/feedback` - Submit user feedback
+  - Headers: `Authorization: Bearer <token>` (optional, includes user info if authenticated)
+  - Body: `{ "name": "User Name", "email": "user@example.com", "message": "Feedback message" }`
+  - Returns: `{ "success": true, "message": "Feedback submitted successfully" }`
+
+### Admin Panel (Developer-only, Token required)
+- `GET /api/check-developer` - Check if user is a developer
+  - Headers: `Authorization: Bearer <token>` (required)
+  - Returns: `{ "is_developer": true/false, "email": "dev@example.com" }`
+
+- `GET /api/admin/feedbacks` - Get all feedbacks (with auto-delete of old resolved)
+  - Headers: `Authorization: Bearer <token>` (required, must be developer)
+  - Returns: Array of feedback objects with status, timestamps, user info
+  - Auto-deletes resolved feedbacks older than 7 days
+
+- `DELETE /api/admin/feedback/<feedback_id>` - Delete specific feedback
+  - Headers: `Authorization: Bearer <token>` (required, must be developer)
+  - Returns: `{ "success": true, "message": "Feedback deleted successfully" }`
+
+- `PUT /api/admin/feedback/<feedback_id>/status` - Update feedback status
+  - Headers: `Authorization: Bearer <token>` (required, must be developer)
+  - Body: `{ "status": "resolved" }`
+  - Returns: `{ "success": true, "message": "Feedback status updated" }`
+  - Adds `resolved_at` timestamp when marked as resolved
+
+- `GET /api/admin/statistics` - Get comprehensive statistics
+  - Headers: `Authorization: Bearer <token>` (required, must be developer)
+  - Returns: Statistics object with:
+    - `users`: Total users, new users (last 7 days)
+    - `chat_sessions`: Total sessions, recent activity
+    - `reports`: Total and weekly report generation
+    - `feature_usage`: Most used feature with count
+    - `recent_activity`: Detailed 7-day activity breakdown
+
 ## 🛠️ Setup Instructions
 
 ### Prerequisites
@@ -292,12 +327,13 @@ backend/
 │   ├── 📄 __init__.py            # Routes package initializer
 │   ├── 📄 auth_routes.py         # Authentication & profile endpoints (dual auth support)
 │   ├── 📄 otp_routes.py          # OTP verification and email routes
+│   ├── 📄 feedback_routes.py     # User feedback submission & admin feedback management
 │   └── 📁 __pycache__/           # Python compiled bytecode cache
 │
 ├── 📁 services/                   # Business logic layer
 │   ├── 📄 __init__.py            # Services package initializer
 │   ├── 📄 auth_service.py        # User authentication logic with Firebase sync & timestamps
-│   ├── 📄 db_service.py          # MongoDB operations (users, chat_history, farming_reports)
+│   ├── 📄 db_service.py          # MongoDB operations (users, developers, feedback, chat, reports)
 │   ├── 📄 firebase_service.py    # Firebase Admin SDK integration & token verification
 │   ├── 📄 llm_service.py         # Google Gemini AI integration & system prompts
 │   ├── 📄 otp_service.py         # OTP generation, validation, and email sending
@@ -324,10 +360,11 @@ backend/
 **Routes (API Endpoints):**
 - `auth_routes.py` - `/api/signup`, `/api/login`, `/api/auth/google`, `/api/update-profile`, `/api/change-password`, `/api/create-password`, `/api/delete-account`
 - `otp_routes.py` - `/api/send-otp`, `/api/verify-otp`, `/api/reset-password`
+- `feedback_routes.py` - `/api/feedback`, `/api/check-developer`, `/api/admin/feedbacks`, `/api/admin/feedback/<id>`, `/api/admin/feedback/<id>/status`, `/api/admin/statistics`
 
 **Services (Business Logic):**
 - `auth_service.py` - User creation, login validation, password hashing (bcrypt), JWT generation
-- `db_service.py` - MongoDB connection, CRUD operations for 3 collections
+- `db_service.py` - MongoDB connection, CRUD operations for 6 collections (users, developers, feedback, chat, sessions, reports)
 - `firebase_service.py` - Firebase token verification, Google user sync
 - `llm_service.py` - Gemini AI client, system prompts, response generation
 - `otp_service.py` - Email sending via SMTP, OTP generation, validation
@@ -561,6 +598,39 @@ MongoDB Database: `agrigpt`
 }
 ```
 
+### 4. Developers Collection (`developers`)
+```json
+{
+  "_id": ObjectId("..."),
+  "email": "developer@example.com",
+  "user_id": ObjectId("...")  // References users._id
+}
+```
+
+### 5. User Feedback Collection (`user_feedback`)
+```json
+{
+  "_id": ObjectId("..."),
+  "name": "Farmer Name",
+  "email": "farmer@example.com",
+  "message": "Feature suggestion or bug report...",
+  "user_id": "user_object_id",  // Optional, References users._id if authenticated
+  "status": "new",  // "new", "in-progress", or "resolved"
+  "timestamp": ISODate("2025-01-07T10:30:00.000Z"),
+  "resolved_at": ISODate("2025-01-08T14:20:00.000Z")  // Only when status is "resolved"
+}
+```
+
+### 6. Chat Sessions Collection (`chat_sessions`)
+```json
+{
+  "_id": ObjectId("..."),
+  "user_id": ObjectId("..."),  // References users._id
+  "started_at": ISODate("2025-01-07T09:00:00.000Z"),
+  "ended_at": ISODate("2025-01-07T09:45:00.000Z")
+}
+```
+
 ### Key Schema Features
 - **Timezone-aware timestamps**: All dates stored in UTC using `datetime.now(timezone.utc)`
 - **Flexible authentication**: Users can have Google-only, password-only, or dual authentication
@@ -569,6 +639,8 @@ MongoDB Database: `agrigpt`
 - **Base64 images**: Profile pictures stored as data URIs for easy retrieval
 - **Language tracking**: Each chat and report tracks the language used
 - **Response metadata**: Chat history includes input type and response type for analytics
+- **Feedback tracking**: Status and resolution timestamps for feedback management
+- **Developer access**: Separate collection for admin panel authentication
 
 ## 🎯 Core Functionality Details
 
