@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from services.auth_service import signup_user, login_user, update_user_profile, change_user_password, delete_user_account, send_otp_email, verify_otp_code, sync_firebase_user_with_mongodb, create_password_for_google_user
 from services.firebase_service import verify_firebase_token, get_firebase_user_info
+from services.db_service import user_collection, developers_collection
+from bson import ObjectId
 import jwt
 from functools import wraps
 from utils.config import JWT_SECRET_KEY
@@ -27,6 +29,34 @@ def token_required(f):
             payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
             request.current_user = payload
         except Exception:
+            return jsonify({"error": "Invalid token"}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+
+def admin_required(f):
+    """Decorator to check if user is a developer (has access to admin panel)"""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        if not token:
+            return jsonify({"error": "Token missing"}), 401
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+            
+            # Check if user exists
+            user = user_collection.find_one({"_id": ObjectId(user_id)})
+            if not user:
+                return jsonify({"error": "User not found"}), 404
+            
+            # Check if user is in developers collection
+            developer = developers_collection.find_one({"user_id": user_id})
+            if not developer:
+                return jsonify({"error": "Developer access required. You must be in the developers collection."}), 403
+            
+            request.current_user = payload
+        except Exception as e:
             return jsonify({"error": "Invalid token"}), 401
         return f(*args, **kwargs)
     return decorated
@@ -162,6 +192,8 @@ def create_password():
         user_id = request.current_user["user_id"]
         new_password = data.get("password")
         
+        print(f"🔐 Creating password for user_id: {user_id}")
+        
         if not new_password:
             return jsonify({"error": "Password is required"}), 400
         
@@ -169,6 +201,8 @@ def create_password():
             return jsonify({"error": "Password must be at least 6 characters"}), 400
         
         result = create_password_for_google_user(user_id, new_password)
+        print(f"✅ Password created successfully for user_id: {user_id}")
         return jsonify(result)
     except Exception as e:
+        print(f"❌ Error creating password: {str(e)}")
         return jsonify({"error": str(e)}), 400
