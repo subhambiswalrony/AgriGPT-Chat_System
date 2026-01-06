@@ -25,6 +25,12 @@ export const API_ENDPOINTS = {
   UPDATE_PROFILE: '/api/update-profile',
   CHANGE_PASSWORD: '/api/change-password',
   DELETE_ACCOUNT: '/api/delete-account',
+  
+  // Feedback
+  FEEDBACK: '/api/feedback',
+  ADMIN_FEEDBACKS: '/api/admin/feedbacks',
+  CHECK_DEVELOPER: '/api/check-developer',
+  ADMIN_STATISTICS: '/api/admin/statistics',
 };
 
 // Helper function to build full API URL
