@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, MessageCircle, Upload, FileText, Users, Menu, X, MapPin, Cloud, LogIn, LogOut, ChevronDown, Settings, Moon, Sun } from 'lucide-react';
+import { Home, MessageCircle, Upload, FileText, Users, Menu, X, MapPin, Cloud, LogIn, LogOut, ChevronDown, Settings, Moon, Sun, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWeather } from '../hooks/useWeather';
 import { useTheme } from '../contexts/ThemeContext';
+import { API_ENDPOINTS, getApiUrl, getAuthHeaders } from '../config/api';
 import Loader from './Loader';
 
 const Navigation = () => {
@@ -12,6 +13,7 @@ const Navigation = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const [showLoader, setShowLoader] = React.useState(false);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [isDeveloper, setIsDeveloper] = React.useState(false);
   const [userName, setUserName] = React.useState('');
   const [userEmail, setUserEmail] = React.useState('');
   const [profilePicture, setProfilePicture] = React.useState('');
@@ -19,6 +21,27 @@ const Navigation = () => {
   const navigate = useNavigate();
   const { weather, loading } = useWeather();
   const { isDarkMode, toggleTheme } = useTheme();
+
+  // Check if user is a developer
+  const checkDeveloperStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(getApiUrl(API_ENDPOINTS.CHECK_DEVELOPER), {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsDeveloper(data.is_developer);
+      }
+    } catch (error) {
+      console.log('Not a developer or error checking status');
+      setIsDeveloper(false);
+    }
+  };
 
   // Check authentication status on mount
   React.useEffect(() => {
@@ -32,8 +55,10 @@ const Navigation = () => {
       setUserName(name || 'User');
       setUserEmail(email || '');
       setProfilePicture(picture || '');
+      checkDeveloperStatus();
     } else {
       setIsAuthenticated(false);
+      setIsDeveloper(false);
     }
   }, [location]);
 
@@ -320,6 +345,23 @@ const Navigation = () => {
 
                       {/* Menu Items */}
                       <div className="py-2">
+                        {/* Admin Panel Link - Only for developers */}
+                        {isDeveloper && (
+                          <Link
+                            to="/admin"
+                            onClick={() => setShowProfileMenu(false)}
+                            className="flex items-center space-x-3 px-6 py-3.5 hover:bg-gradient-to-r hover:from-purple-50/80 hover:to-indigo-50/80 dark:hover:from-purple-900/20 dark:hover:to-indigo-900/20 text-gray-700 dark:text-gray-300 transition-all duration-200 group"
+                          >
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/40 dark:to-indigo-900/40 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                              <Shield size={16} className="text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-sm group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Admin Panel</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Manage feedbacks</p>
+                            </div>
+                          </Link>
+                        )}
+
                         <Link
                           to="/settings"
                           onClick={() => setShowProfileMenu(false)}
@@ -555,6 +597,29 @@ const Navigation = () => {
                         </Link>
                       </motion.div>
                     ))}
+
+                    {/* Admin Panel Link for Mobile - Only for developers */}
+                    {isAuthenticated && isDeveloper && (
+                      <motion.div
+                        variants={menuItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        custom={navItems.length}
+                      >
+                        <Link
+                          to="/admin"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center space-x-3 sm:space-x-3.5 px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl backdrop-blur-xl transition-all duration-200 border bg-gradient-to-br from-purple-50/90 to-indigo-50/90 dark:from-purple-900/40 dark:to-indigo-900/40 text-purple-700 dark:text-purple-400 hover:shadow-lg border-purple-300/50 dark:border-purple-600/50"
+                        >
+                          <Shield size={20} className="sm:w-[22px] sm:h-[22px] flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-sm sm:text-base font-semibold">Admin Panel</p>
+                            <p className="text-xs text-purple-600 dark:text-purple-400">Developer Access</p>
+                          </div>
+                        </Link>
+                      </motion.div>
+                    )}
+
 
                     {/* Settings Button for Mobile (if authenticated) */}
                     {isAuthenticated && (
