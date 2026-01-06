@@ -62,6 +62,8 @@ https://github.com/user-attachments/assets/f87369b5-98c8-497e-bbbb-40f3d373388b
 - **⚡ Optimized Performance**: **60% smaller bundle size**, **50% faster load times** on mobile devices
 - **🆓 Trial Mode**: Free access to text chat without registration (no barriers to farmers)
 - **🌾 Agriculture-Focused**: AI trained specifically for Indian agriculture with regional knowledge
+- **💬 Feedback System**: User feedback collection with admin panel for developers
+- **📊 Admin Dashboard**: Developer-only analytics dashboard with comprehensive statistics and feedback management
 
 ### 🎯 Target Audience
 
@@ -182,6 +184,13 @@ HomePage.js       #  25 KB - Home page
    - Delete account option with confirmation
    - Track authentication methods used
 
+5. **Feedback System**
+   - Submit feedback, suggestions, or report issues directly from the app
+   - Share your farming experience and help improve AgriGPT
+   - Contribute to making the platform better for all farmers
+   - Anonymous or authenticated feedback submission
+   - Dedicated feedback page with easy-to-use form
+
 ### For Developers 💻
 
 1. **Modern Tech Stack**
@@ -192,7 +201,24 @@ HomePage.js       #  25 KB - Home page
    - **Auth**: Firebase Admin SDK for OAuth 2.0 and JWT for session management
    - **Voice**: Faster Whisper for offline speech-to-text
 
-2. **Comprehensive Documentation**
+2. **Admin Dashboard & Analytics**
+   - **Developer-only access** via separate `developers` collection
+   - **Comprehensive statistics dashboard**:
+     - Total users and new users this week
+     - Chat sessions and reports generated
+     - Most used features analytics
+     - Weekly activity trends
+   - **Feedback management system**:
+     - View all user feedbacks with timestamps
+     - Mark feedbacks as resolved with status tracking
+     - Delete inappropriate or spam feedbacks
+     - Side-by-side comparison of active vs resolved feedbacks
+     - Auto-delete resolved feedbacks after 7 days
+   - **Delete confirmation modal** for safe operations
+   - **Enhanced empty states** with animated icons and contextual messages
+   - **Real-time updates** for feedback status changes
+
+3. **Comprehensive Documentation**
    - Detailed API documentation with examples
    - Step-by-step setup guides for frontend and backend
    - Firebase integration instructions with screenshots
@@ -301,6 +327,7 @@ AgriGPT-Chat-Report_System/
 │   │   │   ├── 📄 SettingsPage.tsx       # User profile settings
 │   │   │   ├── 📄 TeamPage.tsx           # Team information
 │   │   │   ├── 📄 FeedbackPage.tsx       # Feedback form
+│   │   │   ├── 📄 AdminPanelPage.tsx     # Admin dashboard (developer-only)
 │   │   │   ├── 📄 UploadPage.tsx         # File upload (future)
 │   │   │   ├── 📄 ResetPasswordPage.tsx  # Password reset (future)
 │   │   │   └── 📄 NotFoundPage.tsx       # 404 error page
@@ -340,7 +367,8 @@ AgriGPT-Chat-Report_System/
 ├── 📁 backend/                           # Flask Backend API
 │   ├── 📁 routes/                        # API route handlers
 │   │   ├── 📄 auth_routes.py             # Auth endpoints
-│   │   └── 📄 otp_routes.py              # OTP verification
+│   │   ├── 📄 otp_routes.py              # OTP verification
+│   │   └── 📄 feedback_routes.py         # Feedback & admin endpoints
 │   │
 │   ├── 📁 services/                      # Business logic layer
 │   │   ├── 📄 __init__.py                # Service package init
@@ -614,12 +642,18 @@ Before you begin, ensure you have the following installed:
 
 | Directory | Purpose | Key Technologies |
 |-----------|---------|------------------|
-| `frontend/src/pages/` | Route components | React Router, Lazy Loading |
+| `frontend/src/pages/` | Route components | React Router, Lazy Loading, Admin Dashboard |
 | `frontend/src/components/` | Reusable UI | React.memo, TypeScript |
 | `frontend/src/hooks/` | Custom hooks | Performance optimization |
-| `backend/routes/` | API endpoints | Flask Blueprints |
+| `backend/routes/` | API endpoints | Flask Blueprints, Auth, Feedback |
 | `backend/services/` | Business logic | MongoDB, Firebase, Gemini AI |
 | `backend/utils/` | Helpers | Environment config, utilities |
+
+**New Features Added:**
+- 📊 **Admin Dashboard** (`frontend/src/pages/AdminPanelPage.tsx`) - Developer-only analytics and feedback management
+- 💬 **Feedback System** (`backend/routes/feedback_routes.py`) - User feedback submission and admin management
+- 🗄️ **Enhanced Database** (`backend/services/db_service.py`) - Added developers and user_feedback collections
+- 📈 **Statistics API** - Comprehensive analytics for users, sessions, reports, and feature usage
 
 ---
 
@@ -903,6 +937,42 @@ Protected endpoints:
     "calendar": ["point1", "point2", "point3", "point4"]
   },
   "generated_at": ISODate("2025-01-04T14:10:00.000Z")
+}
+```
+
+#### 4. Developers Collection (`developers`)
+
+```javascript
+{
+  "_id": ObjectId("..."),
+  "email": "developer@example.com",
+  "user_id": "user_id_reference" // Reference to users collection
+}
+```
+
+#### 5. User Feedback Collection (`user_feedback`)
+
+```javascript
+{
+  "_id": ObjectId("..."),
+  "name": "Farmer Name",
+  "email": "farmer@example.com",
+  "message": "Feature suggestion or bug report...",
+  "user_id": "user_id_here", // Optional, only if authenticated
+  "status": "new", // "new", "in-progress", or "resolved"
+  "timestamp": ISODate("2025-01-07T10:30:00.000Z"),
+  "resolved_at": ISODate("2025-01-08T14:20:00.000Z") // Only when status is "resolved"
+}
+```
+
+#### 6. Chat Sessions Collection (`chat_sessions`)
+
+```javascript
+{
+  "_id": ObjectId("..."),
+  "user_id": "user_id_here",
+  "started_at": ISODate("2025-01-07T09:00:00.000Z"),
+  "ended_at": ISODate("2025-01-07T09:45:00.000Z")
 }
 ```
 
