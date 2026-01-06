@@ -10,6 +10,8 @@ chat_collection = db.chat_history
 chat_sessions_collection = db.chat_sessions
 user_collection = db.users
 report_collection = db.farming_reports
+feedback_collection = db.user_feedback
+developers_collection = db.developers
 
 
 def save_chat(user_id, question, answer, response_type, language, input_type="text", chat_id=None):
@@ -256,4 +258,44 @@ def generate_chat_title(message, language):
         title = title[:37] + "..."
     
     return title if title else f"New Chat ({language})"
+
+
+# ==================== FEEDBACK MANAGEMENT ====================
+
+def save_feedback(name, email, message, user_id=None):
+    """Save user feedback to database"""
+    try:
+        result = feedback_collection.insert_one({
+            "name": name,
+            "email": email,
+            "message": message,
+            "user_id": user_id,
+            "status": "new",  # new, in-progress, resolved
+            "timestamp": datetime.now(timezone.utc)
+        })
+        print(f"✓ Feedback saved from: {name}, ID: {result.inserted_id}")
+        return result.inserted_id
+    except Exception as e:
+        print(f"✗ Error saving feedback: {str(e)}")
+        raise
+
+
+def get_all_feedbacks():
+    """Get all feedbacks sorted by timestamp (newest first)"""
+    try:
+        feedbacks = list(
+            feedback_collection.find({}).sort("timestamp", -1)
+        )
+        
+        # Convert ObjectId to string for JSON serialization
+        for feedback in feedbacks:
+            feedback["_id"] = str(feedback["_id"])
+            # Convert timestamp to ISO format string
+            if "timestamp" in feedback:
+                feedback["timestamp"] = feedback["timestamp"].isoformat()
+        
+        return feedbacks
+    except Exception as e:
+        print(f"✗ Error getting feedbacks: {str(e)}")
+        return []
 
