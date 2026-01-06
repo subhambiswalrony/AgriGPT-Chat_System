@@ -51,7 +51,24 @@ const SettingsPage = () => {
     const name = localStorage.getItem('name') || '';
     const email = localStorage.getItem('email') || '';
     const profilePicture = localStorage.getItem('profilePicture') || '';
-    const providers = JSON.parse(localStorage.getItem('auth_providers') || '[]');
+    const providersString = localStorage.getItem('auth_providers');
+    
+    // If auth_providers is missing, infer from available data
+    let providers: string[] = [];
+    if (providersString) {
+      providers = JSON.parse(providersString);
+    } else {
+      // Fallback: Check if user has firebase_uid (Google user)
+      const firebaseUid = localStorage.getItem('firebase_uid');
+      if (firebaseUid) {
+        providers = ['google'];
+        localStorage.setItem('auth_providers', JSON.stringify(providers));
+      } else {
+        // Regular user with password
+        providers = ['local'];
+        localStorage.setItem('auth_providers', JSON.stringify(providers));
+      }
+    }
     
     setFormData(prev => ({ ...prev, name, email, profilePicture }));
     setOriginalData({ name, email, profilePicture });
@@ -242,7 +259,58 @@ const SettingsPage = () => {
       }
 
       // Update password if provided
-      if (formData.currentPassword && formData.newPassword) {
+      // For Google users creating password for the first time
+      if (isGoogleUser && !hasPassword && formData.newPassword) {
+        if (formData.newPassword.length < 6) {
+          throw new Error('Password must be at least 6 characters');
+        }
+
+        if (formData.newPassword !== formData.confirmPassword) {
+          throw new Error('Passwords do not match');
+        }
+
+        console.log('📡 Creating password for Google user...');
+        
+        // Try to link with Firebase (optional)
+        const user = auth.currentUser;
+        if (user && user.email) {
+          try {
+            const credential = EmailAuthProvider.credential(user.email, formData.newPassword);
+            await linkWithCredential(user, credential);
+            console.log('✅ Firebase credential linked successfully');
+          } catch (firebaseError: any) {
+            console.warn('⚠️ Firebase linking failed (may already be linked):', firebaseError.message);
+          }
+        }
+        
+        // Update backend to add 'local' provider
+        const createPasswordResponse = await fetch(getApiUrl('/api/create-password'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            password: formData.newPassword
+          })
+        });
+
+        console.log('📡 Backend response status:', createPasswordResponse.status);
+        const createPasswordData = await createPasswordResponse.json();
+        console.log('📡 Backend response data:', createPasswordData);
+
+        if (!createPasswordResponse.ok) {
+          throw new Error(createPasswordData.error || 'Failed to create password');
+        }
+
+        // Update local state
+        setHasPassword(true);
+        const updatedProviders = [...authProviders, 'local'];
+        setAuthProviders(updatedProviders);
+        localStorage.setItem('auth_providers', JSON.stringify(updatedProviders));
+        
+      } else if (formData.currentPassword && formData.newPassword) {
+        // Regular password change for users who already have a password
         if (formData.newPassword !== formData.confirmPassword) {
           throw new Error('New passwords do not match');
         }
@@ -350,10 +418,17 @@ const SettingsPage = () => {
         // Link email/password credential with Firebase account
         const user = auth.currentUser;
         if (user && user.email) {
-          const credential = EmailAuthProvider.credential(user.email, formData.newPassword);
-          await linkWithCredential(user, credential);
+          try {
+            const credential = EmailAuthProvider.credential(user.email, formData.newPassword);
+            await linkWithCredential(user, credential);
+            console.log('✅ Firebase credential linked successfully');
+          } catch (firebaseError: any) {
+            console.warn('⚠️ Firebase linking failed (may already be linked):', firebaseError.message);
+            // Continue anyway - we'll update backend regardless
+          }
           
           // Update backend to add 'local' provider
+          console.log('📡 Calling backend to create password...');
           const response = await fetch(getApiUrl('/api/create-password'), {
             method: 'POST',
             headers: {
@@ -365,7 +440,9 @@ const SettingsPage = () => {
             })
           });
 
+          console.log('📡 Backend response status:', response.status);
           const data = await response.json();
+          console.log('📡 Backend response data:', data);
 
           if (!response.ok) {
             throw new Error(data.error || 'Failed to create password');
