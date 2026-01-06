@@ -18,6 +18,7 @@ from services.firebase_service import initialize_firebase
 # Auth
 from routes.auth_routes import auth_bp, token_required, verify_token
 from routes.otp_routes import otp_bp
+from routes.feedback_routes import feedback_bp
 
 # Initialize Firebase Admin SDK
 initialize_firebase()
@@ -28,6 +29,7 @@ CORS(app, origins="*")
 # Register authentication blueprint
 app.register_blueprint(auth_bp)
 app.register_blueprint(otp_bp)
+app.register_blueprint(feedback_bp)
 
 # -------------------- HEALTH CHECK --------------------
 @app.route("/")
