@@ -40,6 +40,17 @@ def login_user(email, password):
     user = user_collection.find_one({"email": email})
     if not user:
         raise Exception("User not registered")
+    
+    # Check if user has a password field (regular signup or Google user who created password)
+    if "password" not in user or not user["password"]:
+        # User might be a Google-only user who hasn't created a password yet
+        auth_providers = user.get("auth_providers", [])
+        if "google" in auth_providers and "local" not in auth_providers:
+            raise Exception("Please sign in with Google or create a password first")
+        else:
+            raise Exception("No password set for this account")
+    
+    # Verify password
     if not bcrypt.checkpw(password.encode(), user["password"]):
         raise Exception("Invalid credentials")
 
@@ -320,26 +331,39 @@ def create_password_for_google_user(user_id, new_password):
     Returns:
         dict: Success message
     """
+    print(f"🔐 Creating password for user_id: {user_id}")
+    
     user = user_collection.find_one({"_id": ObjectId(user_id)})
     
     if not user:
+        print(f"❌ User not found: {user_id}")
         raise Exception("User not found")
+    
+    print(f"👤 User found: {user.get('email')}, auth_providers: {user.get('auth_providers', [])}")
     
     # Check if user has Google as auth provider
     if "google" not in user.get("auth_providers", []):
+        print(f"❌ User is not a Google user")
         raise Exception("This feature is only for Google sign-in users")
     
     # Hash the password
     hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt())
+    print(f"✅ Password hashed successfully")
     
     # Update user with password and add 'local' to auth_providers
-    user_collection.update_one(
+    result = user_collection.update_one(
         {"_id": ObjectId(user_id)},
         {
             "$set": {"password": hashed},
             "$addToSet": {"auth_providers": "local"}
         }
     )
+    
+    print(f"✅ Database update - Modified count: {result.modified_count}")
+    
+    # Verify the update
+    updated_user = user_collection.find_one({"_id": ObjectId(user_id)})
+    print(f"✅ Verified - Has password: {'password' in updated_user}, auth_providers: {updated_user.get('auth_providers', [])}")
     
     return {
         "success": True,
