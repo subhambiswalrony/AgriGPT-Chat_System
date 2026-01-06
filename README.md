@@ -888,6 +888,82 @@ Protected endpoints:
 
 ## 🗄️ Database Schema
 
+### Database: `agrigpt`
+
+### 📊 Collections Relationship Diagram
+
+```
+                                    ┌─────────────────────────────────┐
+                                    │         users                   │
+                                    │  ─────────────────────────────  │
+                                    │  _id: ObjectId (PK)             │
+                                    │  email: String                  │
+                                    │  password: String (hashed)      │
+                                    │  name: String                   │
+                                    │  profilePicture: String         │
+                                    │  firebase_uid: String           │
+                                    │  auth_providers: Array          │
+                                    │  created_at: DateTime           │
+                                    │  last_login: DateTime           │
+                                    └──────────┬──────────────────────┘
+                                               │
+                                               │ (1:N relationships)
+                   ┌───────────────────────────┼───────────────────────────┐
+                   │                           │                           │
+                   │                           │                           │
+        ┌──────────▼──────────┐     ┌──────────▼──────────┐    ┌──────────▼──────────┐
+        │   chat_sessions     │     │   chat_history      │    │  farming_reports    │
+        │  ─────────────────  │     │  ─────────────────  │    │  ─────────────────  │
+        │  _id: ObjectId (PK) │     │  _id: ObjectId (PK) │    │  _id: ObjectId (PK) │
+        │  user_id: String(FK)│     │  user_id: String(FK)│    │  user_id: String(FK)│
+        │  started_at: Date   │     │  session_id: Str(FK)│◄───┤  crop: String       │
+        │  ended_at: Date     │────▶│  message: String    │    │  region: String     │
+        └─────────────────────┘     │  response: String   │    │  language: String   │
+              (1:N)                 │  language: String   │    │  report: Object     │
+        One session contains        │  input_type: String │    │  generated_at: Date │
+        multiple messages           │  response_type: Str │    └─────────────────────┘
+                                    │  timestamp: Date    │
+                                    └─────────────────────┘
+                   
+                   
+        ┌─────────────────────┐              ┌─────────────────────────────┐
+        │    developers       │              │     user_feedback           │
+        │  ─────────────────  │              │  ─────────────────────────  │
+        │  _id: ObjectId (PK) │              │  _id: ObjectId (PK)         │
+        │  email: String      │              │  name: String               │
+        │  user_id: String(FK)│─────────────▶│  email: String              │
+        └─────────────────────┘              │  message: String            │
+              │                              │  user_id: String (FK, Opt)  │
+              │                              │  status: String             │
+              │                              │  timestamp: DateTime        │
+              └──────────────────────────────│  resolved_at: DateTime      │
+                 (manages feedback)          └─────────────────────────────┘
+```
+
+### 🔗 Collection Relationships
+
+| Collection | References | Relationship Type | Description |
+|------------|-----------|-------------------|-------------|
+| `chat_history` | `users._id` → `user_id` | Many-to-One | Each user can have multiple chat messages |
+| `chat_history` | `chat_sessions._id` → `session_id` | Many-to-One | Each session contains multiple messages |
+| `chat_sessions` | `users._id` → `user_id` | Many-to-One | Each user can have multiple chat sessions |
+| `farming_reports` | `users._id` → `user_id` | Many-to-One | Each user can generate multiple reports |
+| `developers` | `users._id` → `user_id` | One-to-One | Links developer access to user account |
+| `user_feedback` | `users._id` → `user_id` | Many-to-One (Optional) | Anonymous or authenticated feedback |
+
+### 🎯 Key Features
+
+- **Flexible Authentication**: Users can authenticate via email/password or Google OAuth
+- **Developer Access Control**: Separate `developers` collection for admin panel authentication
+- **Feedback Management**: Track feedback status (new → in-progress → resolved) with timestamps
+- **Session Tracking**: Monitor user engagement via `chat_sessions` collection with grouped messages
+- **Message Grouping**: Chat messages are organized by session for better conversation tracking
+- **Optional User Linking**: Feedback can be anonymous (no `user_id`) or linked to authenticated users
+- **Auto-Cleanup**: Resolved feedback older than 7 days is automatically deleted
+- **Timezone Aware**: All timestamps stored in UTC for consistency
+
+---
+
 ### MongoDB Collections
 
 #### 1. Users Collection (`users`)
