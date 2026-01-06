@@ -16,6 +16,7 @@ const AuthPage = React.lazy(() => import('./pages/AuthPage'));
 const ResetPasswordPage = React.lazy(() => import('./pages/ResetPasswordPage'));
 const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
 const FeedbackPage = React.lazy(() => import('./pages/FeedbackPage'));
+const AdminPanelPage = React.lazy(() => import('./pages/AdminPanelPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 
 // Loading fallback component
@@ -64,6 +65,7 @@ function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/admin" element={<AdminPanelPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
