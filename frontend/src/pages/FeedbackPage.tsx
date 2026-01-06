@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { MessageSquare, Send, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
+import { API_ENDPOINTS, getApiUrl } from '../config/api';
 
 const FeedbackPage = () => {
   const navigate = useNavigate();
@@ -13,29 +14,56 @@ const FeedbackPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    setError(''); // Clear error on change
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Add Authorization header if token exists
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(getApiUrl(API_ENDPOINTS.FEEDBACK), {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit feedback');
+      }
+
       setIsSubmitting(false);
       setIsSubmitted(true);
       
-      // Reset form after 3 seconds and show success
+      // Reset form after 3 seconds
       setTimeout(() => {
         setFormData({ name: '', email: '', message: '' });
         setIsSubmitted(false);
       }, 3000);
-    }, 1500);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setError(err.message || 'Failed to submit feedback. Please try again.');
+    }
   };
 
   return (
@@ -98,6 +126,13 @@ const FeedbackPage = () => {
 
             {!isSubmitted ? (
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Error Message */}
+                {error && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl">
+                    {error}
+                  </div>
+                )}
+
                 {/* Name Input */}
                 <div>
                   <label 
