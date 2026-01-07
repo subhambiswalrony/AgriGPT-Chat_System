@@ -908,36 +908,36 @@ Protected endpoints:
                                     └──────────┬──────────────────────┘
                                                │
                                                │ (1:N relationships)
-                   ┌───────────────────────────┼───────────────────────────┐
-                   │                           │                           │
-                   │                           │                           │
-        ┌──────────▼──────────┐     ┌──────────▼──────────┐    ┌──────────▼──────────┐
-        │   chat_sessions     │     │   chat_history      │    │  farming_reports    │
-        │  ─────────────────  │     │  ─────────────────  │    │  ─────────────────  │
-        │  _id: ObjectId (PK) │     │  _id: ObjectId (PK) │    │  _id: ObjectId (PK) │
-        │  user_id: String(FK)│     │  user_id: String(FK)│    │  user_id: String(FK)│
-        │  started_at: Date   │     │  session_id: Str(FK)│◄───┤  crop: String       │
-        │  ended_at: Date     │────▶│  message: String    │    │  region: String     │
-        └─────────────────────┘     │  response: String   │    │  language: String   │
-              (1:N)                 │  language: String   │    │  report: Object     │
-        One session contains        │  input_type: String │    │  generated_at: Date │
-        multiple messages           │  response_type: Str │    └─────────────────────┘
-                                    │  timestamp: Date    │
-                                    └─────────────────────┘
-                   
-                   
-        ┌─────────────────────┐              ┌─────────────────────────────┐
-        │    developers       │              │     user_feedback           │
-        │  ─────────────────  │              │  ─────────────────────────  │
-        │  _id: ObjectId (PK) │              │  _id: ObjectId (PK)         │
-        │  email: String      │              │  name: String               │
-        │  user_id: String(FK)│─────────────▶│  email: String              │
-        └─────────────────────┘              │  message: String            │
-              │                              │  user_id: String (FK, Opt)  │
-              │                              │  status: String             │
-              │                              │  timestamp: DateTime        │
-              └──────────────────────────────│  resolved_at: DateTime      │
-                 (manages feedback)          └─────────────────────────────┘
+                   ┌───────────────────────────┼───────────────────────────┬──────────────────┐
+                   │                           │                           │                  │
+                   │                           │                           │                  │
+        ┌──────────▼──────────┐     ┌──────────▼──────────┐    ┌──────────▼──────────┐        │
+        │   chat_sessions     │     │   chat_history      │    │  farming_reports    │        │
+        │  ─────────────────  │     │  ─────────────────  │    │  ─────────────────  │        │
+        │  _id: ObjectId (PK) │     │  _id: ObjectId (PK) │    │  _id: ObjectId (PK) │        │
+        │  user_id: String(FK)│     │  user_id: String(FK)│    │  user_id: String(FK)│        │
+        │  started_at: Date   │     │  session_id: Str(FK)│◄───┤  crop: String       │        │
+        │  ended_at: Date     │────▶│  message: String   │     │  region: String     │        │
+        └─────────────────────┘     │  response: String   │    │  language: String   │        │
+              (1:N)                 │  language: String   │    │  report: Object     │        │
+        One session contains        │  input_type: String │    │  generated_at: Date │        │ 
+        multiple messages           │  response_type: Str │    └─────────────────────┘        │
+                                    │  timestamp: Date    │                                   │
+                                    └─────────────────────┘                                   │
+                                                                                              │
+                                                                                ┌─────────────▼─────────────┐
+        ┌─────────────────────┐              ┌─────────────────────────────┐    │   otp_verifications       │
+        │    developers       │              │     user_feedback           │    │  ───────────────────────  │
+        │  ─────────────────  │              │  ─────────────────────────  │    │  _id: ObjectId (PK)       │
+        │  _id: ObjectId (PK) │              │  _id: ObjectId (PK)         │    │  email: String            │
+        │  email: String      │              │  name: String               │    │  otp: String              │
+        │  user_id: String(FK)│─────────────▶│  email: String              │    │  purpose: String          │
+        └─────────────────────┘              │  message: String            │    │  expires_at: DateTime     │
+              │                              │  user_id: String (FK, Opt)  │    │  verified: Boolean        │
+              │                              │  status: String             │    │  created_at: DateTime     │
+              │                              │  timestamp: DateTime        │    │  TTL Index: 24 hours      │
+              └──────────────────────────────│  resolved_at: DateTime      │    └───────────────────────────┘
+                 (manages feedback)          └─────────────────────────────┘        (email verification)
 ```
 
 ### 🔗 Collection Relationships
@@ -950,6 +950,7 @@ Protected endpoints:
 | `farming_reports` | `users._id` → `user_id` | Many-to-One | Each user can generate multiple reports |
 | `developers` | `users._id` → `user_id` | One-to-One | Links developer access to user account |
 | `user_feedback` | `users._id` → `user_id` | Many-to-One (Optional) | Anonymous or authenticated feedback |
+| `otp_verifications` | `users.email` → `email` | Many-to-One | Email-based OTP verification for password reset |
 
 ### 🎯 Key Features
 
@@ -960,6 +961,7 @@ Protected endpoints:
 - **Message Grouping**: Chat messages are organized by session for better conversation tracking
 - **Optional User Linking**: Feedback can be anonymous (no `user_id`) or linked to authenticated users
 - **Auto-Cleanup**: Resolved feedback older than 7 days is automatically deleted
+- **OTP Verification**: Secure email-based OTP system with auto-expiration (5 minutes) and TTL index (24 hours)
 - **Timezone Aware**: All timestamps stored in UTC for consistency
 
 ---
@@ -1051,6 +1053,27 @@ Protected endpoints:
   "ended_at": ISODate("2025-01-07T09:45:00.000Z")
 }
 ```
+
+#### 7. OTP Verifications Collection (`otp_verifications`)
+
+```javascript
+{
+  "_id": ObjectId("..."),
+  "email": "user@example.com",
+  "otp": "123456", // 6-digit OTP code
+  "purpose": "password_reset", // Purpose of OTP verification
+  "expires_at": ISODate("2025-01-07T10:35:00.000Z"), // Expires in 5 minutes
+  "verified": false, // Changes to true once verified
+  "created_at": ISODate("2025-01-07T10:30:00.000Z")
+}
+```
+
+**Features:**
+- **Auto-Expiration**: OTPs expire after 5 minutes (configurable via `OTP_EXPIRY_MINUTES`)
+- **TTL Index**: Documents are automatically deleted 24 hours after `expires_at` timestamp
+- **Purpose Tracking**: Supports different OTP purposes (password reset, email verification, etc.)
+- **Verification Status**: Tracks whether OTP has been used
+- **Email-based**: Links to users via email address for password reset functionality
 
 ---
 
