@@ -916,7 +916,7 @@ Protected endpoints:
         │  ─────────────────  │     │  ─────────────────  │    │  ─────────────────  │        │
         │  _id: ObjectId (PK) │     │  _id: ObjectId (PK) │    │  _id: ObjectId (PK) │        │
         │  user_id: String(FK)│     │  user_id: String(FK)│    │  user_id: String(FK)│        │
-        │  started_at: Date   │     │  session_id: Str(FK)│◄───┤  crop: String       │        │
+        │  started_at: Date   │     │  session_id: Str(FK)│    ┤  crop: String       │        │
         │  ended_at: Date     │────▶│  message: String   │     │  region: String     │        │
         └─────────────────────┘     │  response: String   │    │  language: String   │        │
               (1:N)                 │  language: String   │    │  report: Object     │        │
