@@ -96,6 +96,7 @@ const AuthPage = () => {
       localStorage.setItem('email', data.email);
       if (data.name) localStorage.setItem('name', data.name);
       if (data.profilePicture) localStorage.setItem('profilePicture', data.profilePicture);
+      if (data.auth_providers) localStorage.setItem('auth_providers', JSON.stringify(data.auth_providers));
 
       // Show success popup
       setShowSuccessPopup(true);
@@ -146,6 +147,7 @@ const AuthPage = () => {
       localStorage.setItem('email', data.email);
       if (data.name) localStorage.setItem('name', data.name);
       if (data.profilePicture) localStorage.setItem('profilePicture', data.profilePicture);
+      if (data.auth_providers) localStorage.setItem('auth_providers', JSON.stringify(data.auth_providers));
 
       // Hide OTP input and show success popup
       setShowOtpInput(false);
