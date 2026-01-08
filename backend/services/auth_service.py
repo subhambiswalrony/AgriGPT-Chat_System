@@ -20,6 +20,7 @@ def signup_user(email, password, name):
         "password": hashed,
         "name": name,
         "profilePicture": "",
+        "auth_providers": ["local"],
         "created_at": datetime.utcnow(),
         "last_login": None
     }
@@ -32,6 +33,7 @@ def signup_user(email, password, name):
         "email": email,
         "name": name,
         "profilePicture": "",
+        "auth_providers": ["local"],
         "token": token
     }
 
