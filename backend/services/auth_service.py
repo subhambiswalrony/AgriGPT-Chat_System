@@ -259,10 +259,22 @@ def sync_firebase_user_with_mongodb(firebase_user_info):
     picture = firebase_user_info.get("picture", "")
     provider = firebase_user_info["provider"]
     
-    # Check if user already exists in MongoDB
+    # First check if user already exists with this firebase_uid
     user = user_collection.find_one({"firebase_uid": firebase_uid})
     
     if not user:
+        # Check if user exists with this email (but different firebase_uid or no firebase_uid)
+        existing_user_with_email = user_collection.find_one({"email": email})
+        
+        if existing_user_with_email and "google" not in existing_user_with_email.get("auth_providers", []):
+            # User exists with email/password only - suggest linking accounts
+            print(f"⚠️ Email {email} already registered with password. Suggest account linking.")
+            raise Exception(
+                "An account with this email already exists. "
+                "Please sign in with your email and password, "
+                "then link your Google account in Settings to use both sign-in methods."
+            )
+        
         # User doesn't exist, create new user
         print(f"🆕 Creating new user for Firebase UID: {firebase_uid}")
         
