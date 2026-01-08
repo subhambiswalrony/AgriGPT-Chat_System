@@ -218,6 +218,7 @@ def verify_login_otp():
             "email": user["email"],
             "name": user.get("name"),
             "profilePicture": user.get("profilePicture", ""),
+            "auth_providers": user.get("auth_providers", ["local"]),
             "token": token
         }), 200
         
