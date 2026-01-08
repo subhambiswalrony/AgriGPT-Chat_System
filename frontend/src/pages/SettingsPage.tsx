@@ -1138,7 +1138,7 @@ const SettingsPage = () => {
               whileTap={!isSaving && hasUnsavedChanges() ? { scale: 0.95 } : {}}
               className={`flex-1 flex items-center justify-center space-x-2 py-4 rounded-xl font-bold shadow-xl transition-all duration-200 disabled:cursor-not-allowed border-2 text-lg ${
                 hasUnsavedChanges() && !isSaving
-                  ? 'backdrop-blur-xl bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white hover:shadow-2xl border-yellow-300/50 dark:border-orange-700/50'
+                  ? 'backdrop-blur-xl bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white hover:shadow-2xl border-yellow-300/50 dark:border-yellow-600/50'
                   : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed border-gray-400/30 dark:border-gray-600/30'
               }`}
             >
