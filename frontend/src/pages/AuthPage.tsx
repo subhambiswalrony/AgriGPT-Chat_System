@@ -16,6 +16,7 @@ const AuthPage = () => {
   const [showResetLinkSent, setShowResetLinkSent] = useState(false);
   const [showOtpSent, setShowOtpSent] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
+  const [showPasswordResetOtpInput, setShowPasswordResetOtpInput] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [resetEmail, setResetEmail] = useState('');
   const [resetEmailSent, setResetEmailSent] = useState('');
@@ -37,6 +38,12 @@ const AuthPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // If OTP input is showing, verify the OTP
+    if (showOtpInput) {
+      await handleVerifyOtp();
+      return;
+    }
     
     try {
       // Validation for signup
@@ -74,6 +81,15 @@ const AuthPage = () => {
         throw new Error(data.error || 'Authentication failed');
       }
 
+      // Check if OTP is required
+      if (data.requires_otp) {
+        // OTP sent successfully, show OTP input field inline
+        setShowOtpInput(true);
+        console.log('OTP sent to email:', formData.email);
+        return;
+      }
+
+      // If no OTP required (shouldn't happen with new flow, but keeping for safety)
       // Store token and user info in localStorage
       localStorage.setItem('token', data.token);
       localStorage.setItem('user_id', data.user_id);
@@ -97,6 +113,59 @@ const AuthPage = () => {
     }
   };
 
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length !== 6) {
+      setErrorMessage('Please enter a valid 6-digit OTP');
+      setShowErrorPopup(true);
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+
+    try {
+      const endpoint = isLogin ? '/api/verify-login-otp' : '/api/verify-signup-otp';
+      const payload = isLogin
+        ? { email: formData.email, otp }
+        : { email: formData.email, otp, password: formData.password, name: formData.name };
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'OTP verification failed');
+      }
+
+      // Store token and user info in localStorage
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user_id', data.user_id);
+      localStorage.setItem('email', data.email);
+      if (data.name) localStorage.setItem('name', data.name);
+      if (data.profilePicture) localStorage.setItem('profilePicture', data.profilePicture);
+
+      // Hide OTP input and show success popup
+      setShowOtpInput(false);
+      setShowSuccessPopup(true);
+      console.log('OTP verified, auth success:', data);
+
+      // Redirect to homepage after showing popup
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'OTP verification failed');
+      setShowErrorPopup(true);
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
     setFormData({
@@ -105,6 +174,8 @@ const AuthPage = () => {
       password: '',
       confirmPassword: ''
     });
+    setShowOtpInput(false);
+    setOtp('');
   };
 
   const handleGoogleSignIn = async () => {
@@ -392,7 +463,90 @@ const AuthPage = () => {
             </motion.div>
           )}
 
-          {isLogin && (
+          {/* OTP Input Field - Shows inline after credentials are submitted */}
+          <AnimatePresence>
+            {showOtpInput && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              >
+                <div className="relative">
+                  {/* Success indicator that OTP was sent */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg flex items-center gap-2"
+                  >
+                    <CheckCircle size={18} className="text-green-600 dark:text-green-400 flex-shrink-0" />
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      OTP sent to <strong>{formData.email}</strong>
+                    </p>
+                  </motion.div>
+
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                    Enter Verification Code
+                  </label>
+                  <div className="relative group">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 group-focus-within:text-green-500 dark:group-focus-within:text-green-400 transition-colors" size={20} />
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="Enter 6-digit OTP"
+                      maxLength={6}
+                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/50 dark:focus:ring-green-400/50 focus:border-green-500 dark:focus:border-green-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-300 text-center text-lg tracking-widest"
+                      autoFocus
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && otp.length === 6) {
+                          handleVerifyOtp();
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      OTP expires in 10 minutes
+                    </p>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const endpoint = isLogin ? '/api/login' : '/api/signup';
+                          const payload = isLogin 
+                            ? { email: formData.email, password: formData.password }
+                            : { email: formData.email, password: formData.password, name: formData.name };
+
+                          const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                          });
+                          
+                          if (response.ok) {
+                            setOtp('');
+                            setErrorMessage('OTP resent successfully!');
+                            setShowErrorPopup(true);
+                            setTimeout(() => {
+                              setShowErrorPopup(false);
+                            }, 2000);
+                          }
+                        } catch (error) {
+                          console.error('Failed to resend OTP:', error);
+                        }
+                      }}
+                      className="text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium transition-colors duration-200"
+                    >
+                      Resend OTP
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {isLogin && !showOtpInput && (
             <div className="flex items-center justify-between">
               <label className="flex items-center">
                 <input type="checkbox" className="rounded border-gray-300 dark:border-gray-600 text-green-600 focus:ring-green-500 dark:bg-gray-700 transition-colors duration-300" />
@@ -412,7 +566,8 @@ const AuthPage = () => {
             type="submit"
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className="relative w-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 dark:from-green-600 dark:via-emerald-600 dark:to-teal-600 text-white py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl overflow-hidden font-bold"
+            disabled={showOtpInput && (otp.length !== 6 || isVerifyingOtp)}
+            className="relative w-full bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 dark:from-green-600 dark:via-emerald-600 dark:to-teal-600 text-white py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl overflow-hidden font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {/* Shimmer Effect */}
             <motion.div
@@ -426,8 +581,30 @@ const AuthPage = () => {
               }}
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
             />
-            <span className="relative z-10">{isLogin ? 'Sign In' : 'Create Account'}</span>
-            <ArrowRight size={20} className="relative z-10" />
+            {showOtpInput ? (
+              <>
+                {isVerifyingOtp ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="relative z-10 w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                    />
+                    <span className="relative z-10">Verifying...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="relative z-10">Verify OTP & Continue</span>
+                    <CheckCircle size={20} className="relative z-10" />
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <span className="relative z-10">{isLogin ? 'Sign In' : 'Create Account'}</span>
+                <ArrowRight size={20} className="relative z-10" />
+              </>
+            )}
           </motion.button>
         </form>
 
@@ -812,7 +989,7 @@ const AuthPage = () => {
                           const response = await fetch(getApiUrl(API_ENDPOINTS.SEND_OTP), {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: resetEmail })
+                            body: JSON.stringify({ email: resetEmail, purpose: 'reset' })
                           });
                           
                           const data = await response.json();
@@ -828,7 +1005,7 @@ const AuthPage = () => {
                           // Show OTP input after 2.5s
                           setTimeout(() => {
                             setShowOtpSent(false);
-                            setShowOtpInput(true);
+                            setShowPasswordResetOtpInput(true);
                           }, 2500);
                         } catch (error) {
                           setErrorMessage(error instanceof Error ? error.message : 'Failed to send OTP');
@@ -850,91 +1027,16 @@ const AuthPage = () => {
         )}
       </AnimatePresence>
 
-      {/* OTP Sent Popup */}
+      {/* Password Reset OTP Input Modal */}
       <AnimatePresence>
-        {showOtpSent && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[55] flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.5, opacity: 0 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full transition-colors duration-300"
-            >
-              <div className="flex flex-col items-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4 transition-colors duration-300"
-                >
-                  <Mail size={48} className="text-green-600 dark:text-green-400" />
-                </motion.div>
-                
-                <motion.h3
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2 transition-colors duration-300"
-                >
-                  OTP Sent!
-                </motion.h3>
-                
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-gray-600 dark:text-gray-300 text-center mb-2 transition-colors duration-300"
-                >
-                  A verification code has been sent to:
-                </motion.p>
-
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-green-600 dark:text-green-400 font-semibold text-center mb-4 break-all transition-colors duration-300"
-                >
-                  {resetEmailSent}
-                </motion.p>
-
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="text-sm text-gray-500 dark:text-gray-400 text-center transition-colors duration-300"
-                >
-                  Please enter the OTP to continue...
-                </motion.p>
-
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.7, duration: 2 }}
-                  className="w-full h-1 bg-green-600 dark:bg-green-500 rounded-full mt-4 transition-colors duration-300"
-                  style={{ transformOrigin: "left" }}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* OTP Input Modal */}
-      <AnimatePresence>
-        {showOtpInput && (
+        {showPasswordResetOtpInput && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-[58] flex items-center justify-center p-4 transition-colors duration-300"
             onClick={() => {
-              setShowOtpInput(false);
+              setShowPasswordResetOtpInput(false);
               setOtp('');
               setResetEmail('');
             }}
@@ -988,7 +1090,7 @@ const AuthPage = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
-                    setShowOtpInput(false);
+                    setShowPasswordResetOtpInput(false);
                     setOtp('');
                     setResetEmail('');
                   }}
@@ -1022,7 +1124,7 @@ const AuthPage = () => {
                       }
                       
                       // OTP verified successfully, navigate to reset password
-                      setShowOtpInput(false);
+                      setShowPasswordResetOtpInput(false);
                       setOtp('');
                       navigate('/reset-password', { 
                         state: { 
@@ -1052,7 +1154,7 @@ const AuthPage = () => {
                     const response = await fetch(getApiUrl(API_ENDPOINTS.SEND_OTP), {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email: resetEmailSent })
+                      body: JSON.stringify({ email: resetEmailSent, purpose: 'reset' })
                     });
                     
                     if (response.ok) {
