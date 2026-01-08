@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.auth_service import signup_user, login_user, update_user_profile, change_user_password, delete_user_account, send_otp_email, verify_otp_code, sync_firebase_user_with_mongodb, create_password_for_google_user
+from services.auth_service import signup_user, login_user, update_user_profile, change_user_password, delete_user_account, send_otp_email, verify_otp_code, sync_firebase_user_with_mongodb, create_password_for_google_user, generate_token
 from services.firebase_service import verify_firebase_token, get_firebase_user_info
 from services.db_service import user_collection, developers_collection
 from bson import ObjectId
@@ -64,18 +64,163 @@ def admin_required(f):
 
 @auth_bp.route("/signup", methods=["POST"])
 def signup():
+    """Initiate signup by sending OTP - does not create account yet"""
     try:
         data = request.get_json()
-        return jsonify(signup_user(data["email"], data["password"], data.get("name")))
+        email = data.get("email")
+        password = data.get("password")
+        name = data.get("name")
+        
+        # Check if user already exists
+        if user_collection.find_one({"email": email}):
+            return jsonify({"error": "User already exists"}), 400
+        
+        # Send OTP for signup verification
+        from services.otp_service import create_and_send_otp
+        result = create_and_send_otp(email, "signup")
+        
+        # Store signup data temporarily (we'll create account after OTP verification)
+        # Note: Password will be hashed when account is created in verify-signup-otp
+        return jsonify({
+            "message": "OTP sent to your email",
+            "otp_id": result["otp_id"],
+            "requires_otp": True
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@auth_bp.route("/verify-signup-otp", methods=["POST"])
+def verify_signup_otp():
+    """Verify OTP and create user account"""
+    try:
+        data = request.get_json()
+        email = data.get("email")
+        otp = data.get("otp")
+        password = data.get("password")
+        name = data.get("name")
+        
+        # Verify OTP
+        from services.db_service import db
+        from datetime import datetime
+        
+        otp_record = db.otp_verifications.find_one({
+            "email": email,
+            "otp": otp,
+            "purpose": "signup",
+            "verified": False
+        })
+        
+        if not otp_record:
+            return jsonify({"error": "Invalid OTP"}), 400
+        
+        if otp_record["expires_at"] < datetime.utcnow():
+            return jsonify({"error": "OTP expired"}), 400
+        
+        # Mark OTP as verified
+        db.otp_verifications.update_one(
+            {"_id": otp_record["_id"]},
+            {"$set": {"verified": True}}
+        )
+        
+        # Now create the user account
+        result = signup_user(email, password, name)
+        return jsonify(result), 200
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
+    """Initiate login by verifying credentials and sending OTP"""
     try:
         data = request.get_json()
-        return jsonify(login_user(data["email"], data["password"]))
+        email = data.get("email")
+        password = data.get("password")
+        
+        # First verify the credentials
+        user = user_collection.find_one({"email": email})
+        if not user:
+            return jsonify({"error": "User not registered"}), 401
+        
+        # Check if user has a password field
+        if "password" not in user or not user["password"]:
+            auth_providers = user.get("auth_providers", [])
+            if "google" in auth_providers and "local" not in auth_providers:
+                return jsonify({"error": "Please sign in with Google or create a password first"}), 401
+            else:
+                return jsonify({"error": "No password set for this account"}), 401
+        
+        # Verify password
+        import bcrypt
+        if not bcrypt.checkpw(password.encode(), user["password"]):
+            return jsonify({"error": "Invalid credentials"}), 401
+        
+        # Credentials verified, now send OTP
+        from services.otp_service import create_and_send_otp
+        result = create_and_send_otp(email, "login")
+        
+        return jsonify({
+            "message": "OTP sent to your email",
+            "otp_id": result["otp_id"],
+            "requires_otp": True
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 401
+
+
+@auth_bp.route("/verify-login-otp", methods=["POST"])
+def verify_login_otp():
+    """Verify OTP and complete login"""
+    try:
+        data = request.get_json()
+        email = data.get("email")
+        otp = data.get("otp")
+        
+        # Verify OTP
+        from services.db_service import db
+        from datetime import datetime
+        
+        otp_record = db.otp_verifications.find_one({
+            "email": email,
+            "otp": otp,
+            "purpose": "login",
+            "verified": False
+        })
+        
+        if not otp_record:
+            return jsonify({"error": "Invalid OTP"}), 400
+        
+        if otp_record["expires_at"] < datetime.utcnow():
+            return jsonify({"error": "OTP expired"}), 400
+        
+        # Mark OTP as verified
+        db.otp_verifications.update_one(
+            {"_id": otp_record["_id"]},
+            {"$set": {"verified": True}}
+        )
+        
+        # Complete login
+        user = user_collection.find_one({"email": email})
+        
+        # Update last login timestamp
+        user_collection.update_one(
+            {"_id": user["_id"]},
+            {"$set": {"last_login": datetime.utcnow()}}
+        )
+        
+        token = generate_token(str(user["_id"]))
+        return jsonify({
+            "user_id": str(user["_id"]),
+            "email": user["email"],
+            "name": user.get("name"),
+            "profilePicture": user.get("profilePicture", ""),
+            "token": token
+        }), 200
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 401
 
