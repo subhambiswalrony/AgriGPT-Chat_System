@@ -6,7 +6,7 @@ import { getApiUrl, API_ENDPOINTS } from '../config/api';
 import Loader from '../components/Loader';
 import { LogoutConfirmModal, DeleteAccountModal } from '../components/Modals';
 import { auth, googleProvider } from '../config/firebaseAuth';
-import { EmailAuthProvider, linkWithCredential, updatePassword, signInWithPopup } from 'firebase/auth';
+import { EmailAuthProvider, linkWithCredential, signInWithPopup } from 'firebase/auth';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -389,135 +389,6 @@ const SettingsPage = () => {
     setSuccessMessage('Changes cancelled');
     setShowSuccessPopup(true);
     setTimeout(() => setShowSuccessPopup(false), 2000);
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('user_id');
-
-      if (!token || !userId) {
-        throw new Error('Please login to continue');
-      }
-
-      // Check if this is a Google user creating password for the first time
-      if (isGoogleUser && !hasPassword) {
-        // Validate password inputs
-        if (!formData.newPassword) {
-          throw new Error('Please enter a password');
-        }
-
-        if (formData.newPassword.length < 6) {
-          throw new Error('Password must be at least 6 characters');
-        }
-
-        if (formData.newPassword !== formData.confirmPassword) {
-          throw new Error('Passwords do not match');
-        }
-
-        // Link email/password credential with Firebase account
-        const user = auth.currentUser;
-        if (user && user.email) {
-          try {
-            const credential = EmailAuthProvider.credential(user.email, formData.newPassword);
-            await linkWithCredential(user, credential);
-            console.log('✅ Firebase credential linked successfully');
-          } catch (firebaseError: any) {
-            console.warn('⚠️ Firebase linking failed (may already be linked):', firebaseError.message);
-            // Continue anyway - we'll update backend regardless
-          }
-          
-          // Update backend to add 'local' provider
-          console.log('📡 Calling backend to create password...');
-          const response = await fetch(getApiUrl('/api/create-password'), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              password: formData.newPassword
-            })
-          });
-
-          console.log('📡 Backend response status:', response.status);
-          const data = await response.json();
-          console.log('📡 Backend response data:', data);
-
-          if (!response.ok) {
-            throw new Error(data.error || 'Failed to create password');
-          }
-
-          // Update local state
-          setHasPassword(true);
-          const updatedProviders = [...authProviders, 'local'];
-          setAuthProviders(updatedProviders);
-          localStorage.setItem('auth_providers', JSON.stringify(updatedProviders));
-        }
-
-        setSuccessMessage('Password created successfully! You can now login with email and password.');
-      } else {
-        // Regular password change flow
-        // Validate password inputs
-        if (!formData.currentPassword) {
-          throw new Error('Please enter your current password');
-        }
-
-        if (!formData.newPassword) {
-          throw new Error('Please enter a new password');
-        }
-
-        if (formData.newPassword.length < 6) {
-          throw new Error('New password must be at least 6 characters');
-        }
-
-        if (formData.newPassword !== formData.confirmPassword) {
-          throw new Error('New passwords do not match');
-        }
-
-        const response = await fetch(getApiUrl(API_ENDPOINTS.CHANGE_PASSWORD), {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            currentPassword: formData.currentPassword,
-            newPassword: formData.newPassword
-          })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to change password');
-        }
-
-        setSuccessMessage('Password changed successfully!');
-      }
-
-      // Clear password fields
-      setFormData(prev => ({
-        ...prev,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      }));
-
-      setShowSuccessPopup(true);
-      setTimeout(() => setShowSuccessPopup(false), 3000);
-
-    } catch (error) {
-      console.error('Password operation error:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to update password');
-      setShowErrorPopup(true);
-      setTimeout(() => setShowErrorPopup(false), 5000);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleDeleteAccount = async () => {
