@@ -11,6 +11,7 @@ import { EmailAuthProvider, linkWithCredential, signInWithPopup } from 'firebase
 const SettingsPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isLinkingGoogle, setIsLinkingGoogle] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -222,7 +223,7 @@ const SettingsPage = () => {
 
   const handleSaveAll = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSaving(true);
 
     try {
       const token = localStorage.getItem('token');
@@ -373,7 +374,7 @@ const SettingsPage = () => {
       setShowErrorPopup(true);
       setTimeout(() => setShowErrorPopup(false), 5000);
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -389,6 +390,23 @@ const SettingsPage = () => {
     setSuccessMessage('Changes cancelled');
     setShowSuccessPopup(true);
     setTimeout(() => setShowSuccessPopup(false), 2000);
+  };
+
+  // Check if there are any unsaved changes
+  const hasUnsavedChanges = () => {
+    // Check profile changes
+    const hasProfileChanges = 
+      formData.name !== originalData.name ||
+      formData.email !== originalData.email ||
+      formData.profilePicture !== originalData.profilePicture;
+    
+    // Check password changes
+    const hasPasswordChanges = 
+      formData.currentPassword !== '' ||
+      formData.newPassword !== '' ||
+      formData.confirmPassword !== '';
+    
+    return hasProfileChanges || hasPasswordChanges;
   };
 
   const handleDeleteAccount = async () => {
@@ -513,7 +531,8 @@ const SettingsPage = () => {
     }
   };
 
-  if (isLoading) {
+  // Only show full-page loader for account deletion
+  if (isLoading && !isSaving) {
     return <Loader onLoadComplete={handleDeleteLoadComplete} />;
   }
 
@@ -1074,34 +1093,54 @@ const SettingsPage = () => {
             {/* Save Button */}
             <motion.button
               type="submit"
-              disabled={isLoading}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative overflow-hidden flex-1 flex items-center justify-center space-x-2 py-4 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group text-lg"
+              disabled={isSaving || !hasUnsavedChanges()}
+              whileHover={!isSaving && hasUnsavedChanges() ? { scale: 1.05 } : {}}
+              whileTap={!isSaving && hasUnsavedChanges() ? { scale: 0.95 } : {}}
+              className={`relative overflow-hidden flex-1 flex items-center justify-center space-x-2 py-4 rounded-xl font-bold shadow-xl transition-all duration-200 disabled:cursor-not-allowed group text-lg ${
+                hasUnsavedChanges() && !isSaving
+                  ? 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 text-white hover:shadow-2xl'
+                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
+              }`}
             >
-              <motion.div
-                animate={{
-                  x: ["-100%", "200%"]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatDelay: 1
-                }}
-                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
-              />
-              <Save size={24} className="relative z-10" />
-              <span className="relative z-10">{isLoading ? 'Saving...' : 'Save All Changes'}</span>
+              {hasUnsavedChanges() && !isSaving && (
+                <motion.div
+                  animate={{
+                    x: ["-100%", "200%"]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatDelay: 1
+                  }}
+                  className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12"
+                />
+              )}
+              {isSaving ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="relative z-10"
+                >
+                  <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full" />
+                </motion.div>
+              ) : (
+                <Save size={24} className="relative z-10" />
+              )}
+              <span className="relative z-10">{isSaving ? 'Saving...' : 'Save All Changes'}</span>
             </motion.button>
 
             {/* Cancel Button */}
             <motion.button
               type="button"
               onClick={handleCancel}
-              disabled={isLoading}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-1 flex items-center justify-center space-x-2 py-4 backdrop-blur-xl bg-gray-200/80 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-200 disabled:opacity-50 border-2 border-gray-300/50 dark:border-gray-600/50 text-lg"
+              disabled={isSaving || !hasUnsavedChanges()}
+              whileHover={!isSaving && hasUnsavedChanges() ? { scale: 1.05 } : {}}
+              whileTap={!isSaving && hasUnsavedChanges() ? { scale: 0.95 } : {}}
+              className={`flex-1 flex items-center justify-center space-x-2 py-4 rounded-xl font-bold shadow-xl transition-all duration-200 disabled:cursor-not-allowed border-2 text-lg ${
+                hasUnsavedChanges() && !isSaving
+                  ? 'backdrop-blur-xl bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white hover:shadow-2xl border-yellow-300/50 dark:border-orange-700/50'
+                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed border-gray-400/30 dark:border-gray-600/30'
+              }`}
             >
               <AlertCircle size={24} />
               <span>Cancel</span>
