@@ -403,6 +403,7 @@ frontend/
 │   │   ├── 📄 Footer.tsx              # Footer with links and copyright
 │   │   ├── 📄 LazyImage.tsx           # Lazy loading image component with Intersection Observer
 │   │   ├── 📄 Loader.tsx              # Loading spinner/animation component
+│   │   ├── 📄 Modals.tsx              # Reusable modal components (Logout, Delete Account)
 │   │   ├── 📄 Navigation.tsx          # Top navigation bar with theme toggle & auth status
 │   │   └── 📄 ScrollToTop.tsx         # Scroll to top on route change utility
 │   │
@@ -449,10 +450,11 @@ frontend/
 - `mobile-optimizations.css` - Mobile-specific performance optimizations
 
 **Components (Reusable UI):**
-- `Navigation.tsx` - Responsive navbar, theme toggle, user menu, mobile hamburger
+- `Navigation.tsx` - Responsive navbar, theme toggle, user menu, mobile hamburger, logout modal
 - `Footer.tsx` - Footer with quick links, social media, copyright info
 - `LazyImage.tsx` - Optimized image loading with blur placeholder & Intersection Observer
 - `Loader.tsx` - Loading spinner shown during async operations and route changes
+- `Modals.tsx` - Reusable modal components (LogoutConfirmModal, DeleteAccountModal)
 - `ScrollToTop.tsx` - Automatically scrolls to top on route navigation
 
 **Configuration:**
@@ -473,7 +475,7 @@ frontend/
 - `ChatPage.tsx` - Chat interface, message list, text/voice input, trial mode
 - `ReportPage.tsx` - Report form (crop, region, language), PDF generation
 - `WeatherPage.tsx` - Weather cards, forecast, location detection
-- `SettingsPage.tsx` - Profile edit, password change, profile picture upload
+- `SettingsPage.tsx` - Profile edit, password change, profile picture upload, logout button with confirmation modal, Google account linking, OTP verification
 - `TeamPage.tsx` - Team member cards with photos and roles
 - `FeedbackPage.tsx` - Feedback form submission with email validation
 - `AdminPanelPage.tsx` - Developer-only dashboard with statistics, feedback management, side-by-side layout, delete confirmation modal

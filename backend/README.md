@@ -358,16 +358,16 @@ backend/
 - `test_db.py` - Test MongoDB connectivity, view collections, test CRUD operations
 
 **Routes (API Endpoints):**
-- `auth_routes.py` - `/api/signup`, `/api/login`, `/api/auth/google`, `/api/update-profile`, `/api/change-password`, `/api/create-password`, `/api/delete-account`
+- `auth_routes.py` - `/api/signup`, `/api/login`, `/api/verify-login-otp`, `/api/verify-signup-otp`, `/api/auth/google`, `/api/link-google`, `/api/update-profile`, `/api/change-password`, `/api/create-password`, `/api/delete-account`
 - `otp_routes.py` - `/api/send-otp`, `/api/verify-otp`, `/api/reset-password`
 - `feedback_routes.py` - `/api/feedback`, `/api/check-developer`, `/api/admin/feedbacks`, `/api/admin/feedback/<id>`, `/api/admin/feedback/<id>/status`, `/api/admin/statistics`
 
 **Services (Business Logic):**
-- `auth_service.py` - User creation, login validation, password hashing (bcrypt), JWT generation
-- `db_service.py` - MongoDB connection, CRUD operations for 6 collections (users, developers, feedback, chat, sessions, reports)
+- `auth_service.py` - User creation, login validation, password hashing (bcrypt), JWT generation, Google account linking, duplicate prevention
+- `db_service.py` - MongoDB connection, CRUD operations for 6 collections (users, developers, feedback, chat, sessions, reports, otp_verifications)
 - `firebase_service.py` - Firebase token verification, Google user sync
 - `llm_service.py` - Gemini AI client, system prompts, response generation
-- `otp_service.py` - Email sending via SMTP, OTP generation, validation
+- `otp_service.py` - Email sending via SMTP, OTP generation, validation, 10-minute expiry
 - `pdf_service.py` - Report to PDF conversion (future feature)
 
 **Configuration:**

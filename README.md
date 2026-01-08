@@ -316,6 +316,7 @@ AgriGPT-Chat-Report_System/
 │   │   │   ├── 📄 Footer.tsx             # Footer component
 │   │   │   ├── 📄 LazyImage.tsx          # Optimized image loading
 │   │   │   ├── 📄 Loader.tsx             # Loading spinner
+│   │   │   ├── 📄 Modals.tsx              # Reusable modal components (Logout, Delete Account)
 │   │   │   └── 📄 ScrollToTop.tsx        # Scroll behavior utility
 │   │   │
 │   │   ├── 📁 pages/                     # Page components (lazy loaded)
@@ -642,18 +643,22 @@ Before you begin, ensure you have the following installed:
 
 | Directory | Purpose | Key Technologies |
 |-----------|---------|------------------|
-| `frontend/src/pages/` | Route components | React Router, Lazy Loading, Admin Dashboard |
-| `frontend/src/components/` | Reusable UI | React.memo, TypeScript |
+| `frontend/src/pages/` | Route components | React Router, Lazy Loading, Admin Dashboard, Settings with OTP |
+| `frontend/src/components/` | Reusable UI | React.memo, TypeScript, Modals |
 | `frontend/src/hooks/` | Custom hooks | Performance optimization |
-| `backend/routes/` | API endpoints | Flask Blueprints, Auth, Feedback |
-| `backend/services/` | Business logic | MongoDB, Firebase, Gemini AI |
+| `backend/routes/` | API endpoints | Flask Blueprints, Auth, Feedback, OTP |
+| `backend/services/` | Business logic | MongoDB, Firebase, Gemini AI, OTP |
 | `backend/utils/` | Helpers | Environment config, utilities |
 
 **New Features Added:**
 - 📊 **Admin Dashboard** (`frontend/src/pages/AdminPanelPage.tsx`) - Developer-only analytics and feedback management
 - 💬 **Feedback System** (`backend/routes/feedback_routes.py`) - User feedback submission and admin management
-- 🗄️ **Enhanced Database** (`backend/services/db_service.py`) - Added developers and user_feedback collections
+- 🗄️ **Enhanced Database** (`backend/services/db_service.py`) - Added developers, user_feedback, and otp_verifications collections
 - 📈 **Statistics API** - Comprehensive analytics for users, sessions, reports, and feature usage
+- 🔐 **OTP Verification** (`backend/services/otp_service.py`) - Email-based OTP for login/signup with 10-minute expiry
+- 🔗 **Google Account Linking** (`backend/routes/auth_routes.py`) - Link Google accounts to existing email/password accounts
+- 🎭 **Reusable Modals** (`frontend/src/components/Modals.tsx`) - Centralized modal components (Logout, Delete Account)
+- ⚙️ **Enhanced Settings** (`frontend/src/pages/SettingsPage.tsx`) - Profile management, logout button, password change, Google linking
 
 ---
 
