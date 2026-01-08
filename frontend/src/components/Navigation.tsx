@@ -6,6 +6,7 @@ import { useWeather } from '../hooks/useWeather';
 import { useTheme } from '../contexts/ThemeContext';
 import { API_ENDPOINTS, getApiUrl, getAuthHeaders } from '../config/api';
 import Loader from './Loader';
+import { LogoutConfirmModal } from './Modals';
 
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -694,63 +695,12 @@ const Navigation = () => {
 
         {/* Logout Confirmation Modal */}
         <AnimatePresence>
-          {showLogoutConfirm && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                className="fixed top-0 left-0 w-screen h-screen bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                onClick={cancelLogout}
-              >
-                {/* Modal */}
-                <motion.div
-                  className="backdrop-blur-2xl bg-white/95 dark:bg-gray-900/95 rounded-3xl shadow-2xl border-2 border-red-200/50 dark:border-red-700/50 p-6 sm:p-8 w-full max-w-sm transition-all duration-300"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  transition={{ type: "spring", duration: 0.3 }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-center mb-6">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-red-100/90 to-red-200/90 dark:from-red-900/40 dark:to-red-800/40 border-2 border-red-300/50 dark:border-red-600/50 flex items-center justify-center shadow-lg">
-                      <LogOut size={32} className="sm:w-10 sm:h-10 text-red-600 dark:text-red-400" />
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 text-center mb-3">
-                    Logout Confirmation
-                  </h3>
-                  
-                  <p className="text-gray-600 dark:text-gray-300 text-center mb-6 sm:mb-8">
-                    Are you sure you want to logout?
-                  </p>
-                  
-                  <div className="flex space-x-3">
-                    <motion.button
-                      onClick={cancelLogout}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-1 px-4 py-3 rounded-xl backdrop-blur-xl bg-gradient-to-br from-gray-100/90 to-gray-50/90 dark:from-gray-800/90 dark:to-gray-700/90 border-2 border-gray-300/50 dark:border-gray-600/50 text-gray-700 dark:text-gray-200 font-semibold hover:shadow-lg transition-all duration-200"
-                    >
-                      No, Cancel
-                    </motion.button>
-                    
-                    <motion.button
-                      onClick={confirmLogout}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 dark:from-red-600 dark:to-red-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                    >
-                      Yes, Logout
-                    </motion.button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            </>
-          )}
+          {/* Logout Confirmation Modal */}
+          <LogoutConfirmModal
+            isOpen={showLogoutConfirm}
+            onConfirm={confirmLogout}
+            onCancel={cancelLogout}
+          />
         </AnimatePresence>
       </div>
     </motion.nav>
