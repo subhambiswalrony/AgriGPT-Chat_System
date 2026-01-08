@@ -1,11 +1,11 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Github, Linkedin, Mail, Cpu, BrainCircuit, MessageCircleCode, BarChart4, Users, Sparkles, Award, Target } from 'lucide-react';
 import Footer from '../components/Footer';
 
 import viveka from '../assets/vivekananda.jpg';
 import tusar from '../assets/tusar.jpeg';
 import subham from '../assets/Rony.jpg';
-import swabhiman from '../assets/swabhiman.jpeg';
+// import swabhiman from '../assets/swabhiman.jpeg';
 
 
 const TeamPage = () => {
@@ -53,20 +53,20 @@ const TeamPage = () => {
       }
     },
     
-    {
-      name: 'Swabhiman Mohanty',
-      role: '🧪 Data Analyst',
-      description: 'Collected and handled data for better security and performance',
-      icon: BarChart4, 
-      gradient: 'from-orange-400 to-orange-600',
-      skills: ['SQL', 'Pandas', 'Data Visualization'],
-      image: swabhiman,
-      social: {
-        github: 'https://github.com/Swaviman-git',
-        linkedin: 'https://www.linkedin.com/in/swaviman-mohanty-57355b291',
-        email: 'swavimanmohanty2004@gmail.com'
-      }
-    }
+    // {
+    //   name: 'Swabhiman Mohanty',
+    //   role: '🧪 Data Analyst',
+    //   description: 'Collected and handled data for better security and performance',
+    //   icon: BarChart4, 
+    //   gradient: 'from-orange-400 to-orange-600',
+    //   skills: ['SQL', 'Pandas', 'Data Visualization'],
+    //   image: swabhiman,
+    //   social: {
+    //     github: 'https://github.com/Swaviman-git',
+    //     linkedin: 'https://www.linkedin.com/in/swaviman-mohanty-57355b291',
+    //     email: 'swavimanmohanty2004@gmail.com'
+    //   }
+    // }
   ];
 
   const containerVariants = {
