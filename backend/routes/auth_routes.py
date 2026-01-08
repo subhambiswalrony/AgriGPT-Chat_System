@@ -351,3 +351,78 @@ def create_password():
     except Exception as e:
         print(f"❌ Error creating password: {str(e)}")
         return jsonify({"error": str(e)}), 400
+
+
+@auth_bp.route("/link-google", methods=["POST"])
+@token_required
+def link_google():
+    """
+    Link Google account to existing email/password account
+    Verifies Firebase token and adds Google to auth_providers
+    """
+    try:
+        # Get Firebase ID token from request body
+        data = request.get_json()
+        firebase_token = data.get("firebase_token")
+        
+        if not firebase_token:
+            return jsonify({"error": "Firebase token is required"}), 400
+        
+        user_id = request.current_user["user_id"]
+        
+        print(f"🔗 Linking Google account for user_id: {user_id}")
+        
+        # Verify Firebase token
+        decoded_token = verify_firebase_token(firebase_token)
+        
+        # Extract user information
+        firebase_user_info = get_firebase_user_info(decoded_token)
+        firebase_uid = firebase_user_info["firebase_uid"]
+        google_email = firebase_user_info["email"]
+        
+        # Get current user from database
+        user = user_collection.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        # Check if Google email matches user's email
+        if user["email"].lower() != google_email.lower():
+            return jsonify({"error": "Google account email must match your account email"}), 400
+        
+        # Check if this Firebase UID is already linked to another account
+        existing_firebase_user = user_collection.find_one({
+            "firebase_uid": firebase_uid,
+            "_id": {"$ne": ObjectId(user_id)}
+        })
+        
+        if existing_firebase_user:
+            return jsonify({"error": "This Google account is already linked to another account"}), 400
+        
+        # Check if user already has Google linked
+        auth_providers = user.get("auth_providers", [])
+        if "google" in auth_providers:
+            return jsonify({"error": "Google account is already linked"}), 400
+        
+        # Link Google account to user
+        user_collection.update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {"firebase_uid": firebase_uid},
+                "$addToSet": {"auth_providers": "google"}
+            }
+        )
+        
+        # Get updated user
+        updated_user = user_collection.find_one({"_id": ObjectId(user_id)})
+        
+        print(f"✅ Google account linked successfully for user_id: {user_id}")
+        
+        return jsonify({
+            "success": True,
+            "message": "Google account linked successfully",
+            "auth_providers": updated_user.get("auth_providers", []),
+            "firebase_uid": firebase_uid
+        })
+    except Exception as e:
+        print(f"❌ Error linking Google account: {str(e)}")
+        return jsonify({"error": str(e)}), 400
