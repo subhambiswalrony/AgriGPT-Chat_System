@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
-import { MessageCircle, Upload, FileText, ArrowRight, Cloud, Sparkles, TrendingUp, Shield, Zap, CheckCircle, User, Lock, Crown, Star, Users, Heart, MessageSquare } from 'lucide-react';
+import { MessageCircle, Upload, FileText, ArrowRight, Cloud, Sparkles, TrendingUp, Shield, Zap, CheckCircle, User, Lock, Crown, Star, MessageSquare } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
