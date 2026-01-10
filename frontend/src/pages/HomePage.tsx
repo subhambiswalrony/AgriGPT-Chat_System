@@ -4,6 +4,8 @@ import { MessageCircle, Upload, FileText, ArrowRight, Cloud, Sparkles, TrendingU
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
+import FAQ from '../components/FAQ';
+import PromptScroller from '../components/PromptScroller';
 
 const AnimatedCounter = ({ end, duration = 2, suffix = '', decimals = 0 }: { end: number; duration?: number; suffix?: string; decimals?: number }) => {
   const [count, setCount] = useState(0);
@@ -19,7 +21,7 @@ const AnimatedCounter = ({ end, duration = 2, suffix = '', decimals = 0 }: { end
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / (duration * 1000), 1);
-      
+
       setCount(Math.floor(progress * end * 10) / 10);
 
       if (progress < 1) {
@@ -200,7 +202,7 @@ const HomePage = () => {
                 >
                   🚜
                 </motion.span>
-                
+
                 <span className="bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent relative">
                   <motion.span
                     animate={{ opacity: [0.3, 0.6, 0.3] }}
@@ -317,7 +319,7 @@ const HomePage = () => {
                   <div className="relative">
                     {/* Central Icon */}
                     <div className="text-9xl">🧑‍🌾</div>
-                    
+
                     {/* Floating Icons */}
                     <motion.div
                       animate={{
@@ -469,7 +471,7 @@ const HomePage = () => {
                 }}
                 className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-3xl blur-2xl"
               />
-              
+
               <div className="relative h-full backdrop-blur-xl bg-white/90 dark:bg-gray-800/90 rounded-3xl border-2 border-green-400 dark:border-green-500 shadow-2xl p-8 transition-all duration-300">
                 {/* Premium Badge */}
                 <div className="inline-block px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full mb-6">
@@ -620,7 +622,7 @@ const HomePage = () => {
                   <div className="relative backdrop-blur-xl bg-white/90 dark:bg-gray-800/90 rounded-3xl border-2 border-green-200/50 dark:border-green-700/50 shadow-xl p-6 h-full overflow-hidden transition-all duration-300 group-hover:shadow-2xl group-hover:border-green-400 dark:group-hover:border-green-500 flex flex-col">
                     {/* Gradient Background */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                    
+
                     {/* Icon with pulsing effect */}
                     <motion.div
                       whileHover={{ scale: 1.1, rotate: 5 }}
@@ -664,6 +666,12 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Prompt Suggestions Section */}
+      <PromptScroller />
+
+      {/* FAQ Section */}
+      <FAQ />
+
       {/* CTA Section */}
       <motion.section
         initial={{ opacity: 0, y: 50 }}
@@ -699,7 +707,7 @@ const HomePage = () => {
               }}
               className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl"
             />
-            
+
             {/* Decorative Elements */}
             <motion.div
               animate={{ y: [-10, 10, -10] }}
@@ -715,7 +723,7 @@ const HomePage = () => {
             >
               🌾
             </motion.div>
-            
+
             <div className="relative text-center text-white">
               <motion.h2
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -793,12 +801,12 @@ const HomePage = () => {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-4">
                 <motion.div
-                  animate={{ 
+                  animate={{
                     rotate: [0, 10, -10, 0],
                     scale: [1, 1.1, 1]
                   }}
-                  transition={{ 
-                    duration: 3, 
+                  transition={{
+                    duration: 3,
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
