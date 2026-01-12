@@ -1499,12 +1499,15 @@ We extend our heartfelt gratitude to:
 
 ---
 
+<!-- 
 ### Project Statistics
+Note: Uncomment these badges after making the repository public on GitHub
 
 ![GitHub Repo Size](https://img.shields.io/github/repo-size/subhambiswalrony/AgriGPT-Chat-Report_System?style=for-the-badge)
 ![GitHub Last Commit](https://img.shields.io/github/last-commit/subhambiswalrony/AgriGPT-Chat-Report_System?style=for-the-badge)
 ![GitHub Issues](https://img.shields.io/github/issues/subhambiswalrony/AgriGPT-Chat-Report_System?style=for-the-badge)
 ![GitHub Stars](https://img.shields.io/github/stars/subhambiswalrony/AgriGPT-Chat-Report_System?style=for-the-badge)
+-->
 
 ---
 
