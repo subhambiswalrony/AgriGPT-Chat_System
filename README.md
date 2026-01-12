@@ -1509,7 +1509,7 @@ Note: Uncomment these badges after making the repository public on GitHub
 ![GitHub Stars](https://img.shields.io/github/stars/subhambiswalrony/AgriGPT-Chat-Report_System?style=for-the-badge)
 -->
 
----
+<!-- --- -->
 
 **AgriGPT** © 2026 | All Rights Reserved
 
